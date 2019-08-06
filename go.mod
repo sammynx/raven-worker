@@ -1,3 +1,3 @@
-module github.com/dutchsec/ravenworker
+module github.com/dutchsec/raven-worker
 
 go 1.12
