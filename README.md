@@ -9,7 +9,7 @@ The goal of a `flow` is to filter, extract, enrich and store streaming data to e
 ## Worker types
 
 Workers come in three different types: `extract`, `transform` and `load` workers. These types are based on the [graph theory](https://en.wikipedia.org/wiki/Graph_theory) where each worker represents a `node`.  
-For Raven we only use a `directed acyclic graph`.  
+Consider any Raven flow a `directed acyclic graph`.  
 
 ## How to use
 
@@ -21,7 +21,7 @@ This initializes the worker.
 For the Raven framework, a `worker` needs three variables to work with:
 * `RavenURL` to connect to the Raven framework.  
 * `WorkerID` to identify itself and get new jobs.  
-* `FlowID` to get the right jobs for the flow it belongs to and therefor receive the right events (messages) to process.  
+* `FlowID` to get the right jobs for the flow it belongs to and therefore receive the right events (messages) to process.  
 
 Example:
 ```go
@@ -35,7 +35,7 @@ Example:
 Now you can use the methods:
 
 ### NewEvent
-If the worker is of type `extract` which generates data or gets data from an external source, use the `NewEvent` method.  
+If the worker is of type `extract` (generates data or gets data from an external source), use the `NewEvent` method.  
 This method will generate new events for the flow.  
 
 Example:
