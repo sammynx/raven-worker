@@ -315,10 +315,11 @@ func (c Config) retrieveNewEventID() (string, error) {
 }
 
 func sleeper(count int) {
-	sleep := time.Duration(count * 1000 * 1000) // Duration in ns then ms then s
-	if sleep > 5*time.Second {
-		sleep = 5 * time.Second
+	var t float64 = float64(count) * 1000
+	if t > 5000 {
+		t = 5000
 	}
-	fmt.Printf("Awaiting new messages. Interval %v miliseconds\n", sleep)
+	sleep := time.Duration(t)
+	fmt.Printf("Awaiting new messages. Interval %v miliseconds\n", t)
 	time.Sleep(sleep * time.Millisecond)
 }
