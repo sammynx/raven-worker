@@ -90,7 +90,7 @@ func (c Config) NewEvent(msg string) error {
 	}
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: defaultHTTPTimeout,
 	}
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)
