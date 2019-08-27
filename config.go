@@ -2,10 +2,11 @@ package ravenworker
 
 import (
 	"errors"
+	"net/url"
 )
 
 type Config struct {
-	urls []string
+	urls []url.URL
 
 	WorkerID string
 	FlowID   string

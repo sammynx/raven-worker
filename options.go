@@ -11,14 +11,14 @@ type OptionFunc func(*Config) error
 func WithRavenURL(urlStr string) (OptionFunc, error) {
 	parts := strings.Split(urlStr, ",")
 
-	urls := make([]string, len(parts))
+	urls := make([]url.URL, len(parts))
 	for i, part := range parts {
 		u, err := url.Parse(part)
 		if err != nil {
 			return nil, err
 		}
 
-		urls[i] = u.String()
+		urls[i] = *u
 	}
 
 	return func(c *Config) error {
