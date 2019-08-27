@@ -111,7 +111,7 @@ func TestConsumeAckWithUpdatedContent(t *testing.T) {
 				Metadata: map[string]interface{}{
 					"Test": "Test",
 				},
-				Filter: true,
+				Filter: false,
 			}, ar); diff != "" {
 				t.Fatalf("Ack() request body mismatch (-want +got):\n%s", diff)
 			}

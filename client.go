@@ -17,12 +17,14 @@ var (
 
 // newRequest will return a http request for path relative to the base url
 func (c *Worker) newRequest(method string, path string, body io.Reader) (*http.Request, error) {
+	baseURL, _ := url.Parse(c.urls[0])
+
 	u, err := url.Parse(path)
 	if err != nil {
 		return nil, err
 	}
 
-	return http.NewRequest(method, "/"+u.String(), body)
+	return http.NewRequest(method, baseURL.ResolveReference(u).String(), body)
 }
 
 // do will do the actual request, using the http client

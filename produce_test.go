@@ -18,7 +18,8 @@ var (
 // TestProduce will test the sequence of methods to be called during produce.
 func TestProduce(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/flow/flowid/events" {
+		if r.URL.Path == "/" {
+		} else if r.URL.Path == "/flow/flowid/events" {
 			if r.Method != http.MethodPost {
 				t.Fatalf("Unexpected http method for /flow/flowid/events: %s", r.Method)
 			}

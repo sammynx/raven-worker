@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	"github.com/olivere/balancers"
-	"github.com/olivere/balancers/roundrobin"
 )
 
 type Worker struct {
@@ -31,14 +28,24 @@ func New(opts ...OptionFunc) (*Worker, error) {
 		return nil, err
 	}
 
-	// Get a balancer that performs round-robin scheduling between two servers.
-	balancer, err := roundrobin.NewBalancerFromURL(c.urls...)
-	if err != nil {
-		return nil, err
-	}
+	/*
+		// Get a balancer that performs round-robin scheduling between two servers.
+		balancer, err := roundrobin.NewBalancerFromURL(c.urls...)
+		if err != nil {
+			return nil, err
+		}
 
-	// Get a HTTP client based on that balancer.
-	client := balancers.NewClient(balancer)
+		c2, err := balancer.Get()
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(c2.URL())
+		// Get a HTTP client based on that balancer.
+		client := balancers.NewClient(balancer)
+	*/
+	client := &http.Client{
+		Timeout: defaultHTTPTimeout,
+	}
 
 	return &Worker{
 		Config: c,
