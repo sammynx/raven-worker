@@ -2,54 +2,55 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
-	"go.dutchsec.com/ravenworker"
+	worker "github.com/dutchsec/raven-worker"
 )
 
-func main() {
+var log = worker.DefaultLogger
 
+func main() {
 	exampleExtract()
-	// exampleTransform()
+	exampleTransform()
 }
 
 func exampleExtract() {
-	c, _ := ravenworker.NewRavenworker(
-		os.Getenv("RAVEN_URL"),
-		os.Getenv("FLOW_ID"),
-		os.Getenv("WORKER_ID"))
-
-	message := "Some message to send "
+	// TODO: change OptionFunc, error
+	c, err := worker.New(worker.DefaultEnvironment())
+	if err != nil {
+		log.Fatalf("Could not initialize raven worker: %s", err)
+	}
 
 	// Append time to message
 	for i := 0; i < 10; i++ {
-		message = message + time.Now().String()
-		err := c.NewEvent(message)
-		if err != nil {
-			fmt.Println(err)
+		message := worker.NewMessage()
+
+		message = message.Content([]byte(fmt.Sprintf("message %v", time.Now().String())))
+
+		if err := c.Produce(message); err != nil {
+			log.Fatalf("Could not produce events: %s", err)
 		}
 	}
 }
 
+// TODO: Message vs Ref vs Content vs Metadata is inconsistent currently
 func exampleTransform() {
-	c, _ := ravenworker.NewRavenworker(
-		os.Getenv("RAVEN_URL"),
-		os.Getenv("FLOW_ID"),
-		os.Getenv("WORKER_ID"))
+	c, err := worker.New(worker.DefaultEnvironment())
+	if err != nil {
+		log.Fatalf("Could not initialize raven worker: %s", err)
+	}
 
 	for {
 		message, err := c.Consume()
 		if err != nil {
-			fmt.Println(err)
-			continue
+			log.Fatalf("Could not consume message: %s\n", err)
 		}
 
 		// Do something with the message
-		message.Content = "This is the new message: " + c.WorkerId
-		err = c.Produce(message)
-		if err != nil {
-			fmt.Printf("Error acknowledging message: %s", err)
+		message = message.Content([]byte(fmt.Sprintf("This is the new message: %s", c.WorkerID)))
+
+		if err := c.Ack(message); err != nil {
+			log.Fatalf("Could not ack message: %s\n", err)
 		}
 	}
 }
