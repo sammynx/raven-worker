@@ -35,11 +35,13 @@ func (m Message) Reference(ref *Reference) Message {
 	return m
 }
 
+// TODO: how to access Metadata?
 func (m Message) Metadata(metadata map[string]interface{}) Message {
 	m.metaData = metadata
 	return m
 }
 
+// TODO: how to access Content?
 func (m Message) Content(content []byte) Message {
 	m.content = content
 	return m

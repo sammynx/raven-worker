@@ -2,7 +2,6 @@ package ravenworker
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"path"
 	"time"
@@ -11,12 +10,21 @@ import (
 	"go.uber.org/zap"
 )
 
-type ackOptionFunc func(r *ackRequest) error
+type AckOptionFunc func(r *ackRequest) error
 
 // WithFilter will keep the flow from processing further.
-func WithFilter() ackOptionFunc {
+func WithFilter() AckOptionFunc {
 	return func(r *ackRequest) error {
 		r.Filter = true
+		return nil
+	}
+}
+
+// WithFilter will keep the flow from processing further.
+func WithMessage(message Message) AckOptionFunc {
+	return func(r *ackRequest) error {
+		r.Content = string(message.content)
+		r.Metadata = message.metaData
 		return nil
 	}
 }
@@ -43,11 +51,11 @@ func (r *ackRequest) MarshalJSON() ([]byte, error) {
 // allowed.
 //
 // WithFilter() will filter further processing
-func (c *Worker) Ack(message Message, options ...ackOptionFunc) error {
+func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 	// default ackRequest
 	ar := ackRequest{
-		Content:  string(message.content),
-		Metadata: message.metaData,
+		Content:  "",
+		Metadata: nil,
 		Filter:   false,
 	}
 
@@ -58,16 +66,12 @@ func (c *Worker) Ack(message Message, options ...ackOptionFunc) error {
 		}
 	}
 
-	if message.ref == nil {
-		return fmt.Errorf("Cannot ack a message without reference, shouldn't you use produce instead?")
-	}
-
 	var t *time.Timer
 
 	cb := backoff.NewExponentialBackOff()
 
 	for {
-		err := c.ack(*message.ref, ar)
+		err := c.ack(ref, ar)
 		if err == nil {
 			return nil
 		}
@@ -91,7 +95,7 @@ func (c *Worker) Ack(message Message, options ...ackOptionFunc) error {
 	return nil
 }
 
-func (c *Worker) ack(ref Reference, ar ackRequest) error {
+func (c *DefaultWorker) ack(ref Reference, ar ackRequest) error {
 	body := JsonReader(ar)
 
 	// create the request

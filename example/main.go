@@ -4,24 +4,27 @@ import (
 	"fmt"
 	"time"
 
+	ravenworker "github.com/dutchsec/raven-worker"
 	worker "github.com/dutchsec/raven-worker"
 )
 
 var log = worker.DefaultLogger
 
 func main() {
-	exampleExtract()
+	exampleProduce()
+
 	exampleTransform()
 }
 
-func exampleExtract() {
-	// TODO: change OptionFunc, error
-	c, err := worker.New(worker.DefaultEnvironment())
+// exampleProduce will just produce a new message
+func exampleProduce() {
+	c, err := worker.New(
+		worker.DefaultEnvironment(),
+	)
 	if err != nil {
 		log.Fatalf("Could not initialize raven worker: %s", err)
 	}
 
-	// Append time to message
 	for i := 0; i < 10; i++ {
 		message := worker.NewMessage()
 
@@ -33,23 +36,34 @@ func exampleExtract() {
 	}
 }
 
-// TODO: Message vs Ref vs Content vs Metadata is inconsistent currently
+// exampleTransform will consume a new message, update the message
+// and acknowledge the message with the new content
 func exampleTransform() {
-	c, err := worker.New(worker.DefaultEnvironment())
+	c, err := worker.New(
+		worker.DefaultEnvironment(),
+	)
 	if err != nil {
 		log.Fatalf("Could not initialize raven worker: %s", err)
 	}
 
 	for {
-		message, err := c.Consume()
+		ref, err := c.Consume()
 		if err != nil {
 			log.Fatalf("Could not consume message: %s\n", err)
 		}
 
-		// Do something with the message
-		message = message.Content([]byte(fmt.Sprintf("This is the new message: %s", c.WorkerID)))
+		message, err := c.Get(ref)
+		if err != nil {
+			log.Fatalf("Could not consume message: %s\n", err)
+		}
 
-		if err := c.Ack(message); err != nil {
+		newMessage := message.Content(
+			worker.StringContent(
+				fmt.Sprintf("This is the new message: %s", time.Now().String()),
+			),
+		)
+
+		if err := c.Ack(ref, ravenworker.WithMessage(newMessage)); err != nil {
 			log.Fatalf("Could not ack message: %s\n", err)
 		}
 	}

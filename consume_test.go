@@ -2,7 +2,6 @@ package ravenworker
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,8 +21,7 @@ var (
 // TODO: change this to use mux
 // and have mux.Handle() for paths
 func DefaultConsumeHandler(t *testing.T, w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
-	} else if r.URL.Path == "/workers/workerid/work" {
+	if r.URL.Path == "/workers/workerid/work" {
 		w.WriteHeader(http.StatusOK)
 
 		if err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -67,7 +65,6 @@ func TestConsumeAck(t *testing.T) {
 
 	defer ts.Close()
 
-	fmt.Println(ts.URL)
 	w, err := New(
 		MustWithRavenURL(ts.URL),
 		MustWithFlowID("flowid"),
@@ -77,7 +74,12 @@ func TestConsumeAck(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	message, err := w.Consume()
+	ref, err := w.Consume()
+	if err != nil {
+		t.Fatalf("Could not consume message: %s", err.Error())
+	}
+
+	message, err := w.Get(ref)
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -92,7 +94,7 @@ func TestConsumeAck(t *testing.T) {
 		t.Fatalf("Consume() mismatch (-want +got):\n%s", diff)
 	}
 
-	if err := w.Ack(message); err != nil {
+	if err := w.Ack(ref, WithMessage(message)); err != nil {
 		t.Fatalf("Could not ack message: %s", err.Error())
 	}
 }
@@ -131,7 +133,12 @@ func TestConsumeAckWithUpdatedContent(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	message, err := w.Consume()
+	ref, err := w.Consume()
+	if err != nil {
+		t.Fatalf("Could not consume message: %s", err.Error())
+	}
+
+	message, err := w.Get(ref)
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -148,7 +155,7 @@ func TestConsumeAckWithUpdatedContent(t *testing.T) {
 
 	message = message.Content([]byte("updated content"))
 
-	if err := w.Ack(message); err != nil {
+	if err := w.Ack(ref, WithMessage(message)); err != nil {
 		t.Fatalf("Could not ack message: %s", err.Error())
 	}
 }
@@ -187,7 +194,12 @@ func TestConsumeAckWithFilter(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	message, err := w.Consume()
+	ref, err := w.Consume()
+	if err != nil {
+		t.Fatalf("Could not consume message: %s", err.Error())
+	}
+
+	message, err := w.Get(ref)
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -202,7 +214,7 @@ func TestConsumeAckWithFilter(t *testing.T) {
 		t.Fatalf("Consume() mismatch (-want +got):\n%s", diff)
 	}
 
-	if err := w.Ack(message, WithFilter()); err != nil {
+	if err := w.Ack(ref, WithMessage(message), WithFilter()); err != nil {
 		t.Fatalf("Could not ack message: %s", err.Error())
 	}
 }

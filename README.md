@@ -25,38 +25,37 @@ For the Raven framework, a `worker` needs three variables to work with:
 
 Example:
 ```go
-	c, _ := ravenworker.NewRavenworker(
-		os.Getenv("RAVEN_URL"),
-		os.Getenv("FLOW_ID"),
-		os.Getenv("WORKER_ID"))
+	c, err := ravenworker.New(
+        ravenworker.DefaultEnvironment(),
+    )
 
+    if err != nil {
+        // handle error
+    }
 ```
 
 Now you can use the methods:
-
-### NewEvent
-If the worker is of type `extract` (generates data or gets data from an external source), use the `NewEvent` method.  
-This method will generate new events for the flow.  
-
-Example:
-```go
-	message := "Some message to send "
-    err := c.NewEvent(message)
-    if err != nil {
-        fmt.Println(err)
-    }
-```
 
 ### Consume
 When a worker is of type `transform` or `load`, use `Consume` to retrieve the message from the stream.  
 
 Example:
 ```go
-    message, err := c.Consume()
+    ref, err := c.Consume()
     if err != nil {
-        // handle err
+        // handle error
     }
+
+    msg, err := c.Get(ref)
+    if err != nil {
+        // handle error
+    }
+
     // do something with the message
+    msg, err := c.Ack(ref, WithMessage(msg), WithFilter())
+    if err != nil {
+        // handle error
+    }
 ```
 
 
@@ -66,9 +65,12 @@ The actual content (payload) is stored in `message.Content` which takes a string
 
 Example:
 ```go
-		message.Content = "This is the new message: "
-		err = c.Produce(message)
-		if err != nil {
-            // handle err
-		}
+    message := NewMessage().
+                    Content(StringContent("This is the new message: "))
+
+    err := c.Produce(message)
+    if err != nil {
+        // handle error
+    }
 ```
+

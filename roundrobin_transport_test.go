@@ -42,7 +42,7 @@ func TestRoundTripper(t *testing.T) {
 		}
 	}
 
-	if count != 200 {
+	if count != 100 {
 		t.Fatalf("Expected server picks to be 100: %d", count)
 	}
 }

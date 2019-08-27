@@ -28,7 +28,7 @@ func (e EventID) String() string {
 //    if err != nil {
 //        panic (err)
 //    }
-func (c *Worker) Produce(message Message) error {
+func (c *DefaultWorker) Produce(message Message) error {
 	var t *time.Timer
 
 	cb := backoff.NewExponentialBackOff()
@@ -56,7 +56,7 @@ func (c *Worker) Produce(message Message) error {
 	}
 }
 
-func (c *Worker) produce(message Message) error {
+func (c *DefaultWorker) produce(message Message) error {
 	eventID, err := c.getNewEventID()
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (c *Worker) produce(message Message) error {
 }
 
 // getEventID will retrieve a new event id from workflow
-func (c *Worker) getNewEventID() (EventID, error) {
+func (c *DefaultWorker) getNewEventID() (EventID, error) {
 	// create the request
 	req, err := c.newRequest(http.MethodPost, path.Join("flow", c.FlowID, "events"), nil)
 	if err != nil {
@@ -94,7 +94,7 @@ func (c *Worker) getNewEventID() (EventID, error) {
 }
 
 // putEvent will put the new message with event id to workflow
-func (c *Worker) putEvent(eventID EventID, message Message) error {
+func (c *DefaultWorker) putEvent(eventID EventID, message Message) error {
 	body := JsonReader(message)
 
 	req, err := c.newRequest(http.MethodPut, path.Join("flow", c.FlowID, "events", eventID.String()), body)

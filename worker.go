@@ -6,14 +6,21 @@ import (
 	"net/http"
 )
 
-type Worker struct {
+type Worker interface {
+	Consume() (Reference, error)
+	Get(Reference) (Message, error)
+	Ack(Reference, ...AckOptionFunc) error
+	Produce(Message) error
+}
+
+type DefaultWorker struct {
 	Config
 
 	client *http.Client
 }
 
 // New returns a new configured Raven Worker client
-func New(opts ...OptionFunc) (*Worker, error) {
+func New(opts ...OptionFunc) (Worker, error) {
 	c := Config{
 		l: DefaultLogger,
 	}
@@ -28,7 +35,7 @@ func New(opts ...OptionFunc) (*Worker, error) {
 		return nil, err
 	}
 
-	return &Worker{
+	return &DefaultWorker{
 		Config: c,
 
 		client: &http.Client{
