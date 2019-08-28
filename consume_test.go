@@ -2,8 +2,10 @@ package ravenworker
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -21,6 +23,11 @@ var (
 // TODO: change this to use mux
 // and have mux.Handle() for paths
 func DefaultConsumeHandler(t *testing.T, w http.ResponseWriter, r *http.Request) {
+	if true {
+	} else if data, err := httputil.DumpRequest(r, true); err == nil {
+		fmt.Printf("Request dump: %s", string(data))
+	}
+
 	if r.URL.Path == "/workers/workerid/work" {
 		w.WriteHeader(http.StatusOK)
 
@@ -86,8 +93,8 @@ func TestConsumeAck(t *testing.T) {
 
 	want := TestConsumeMessage
 	got := map[string]interface{}{
-		"metadata": message.metaData,
-		"content":  string(message.content),
+		"metadata": message.MetaData,
+		"content":  string(message.Content),
 	}
 
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -145,15 +152,15 @@ func TestConsumeAckWithUpdatedContent(t *testing.T) {
 
 	want := TestConsumeMessage
 	got := map[string]interface{}{
-		"metadata": message.metaData,
-		"content":  string(message.content),
+		"metadata": message.MetaData,
+		"content":  string(message.Content),
 	}
 
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Fatalf("Consume() mismatch (-want +got):\n%s", diff)
 	}
 
-	message = message.Content([]byte("updated content"))
+	message.Content = Content([]byte("updated content"))
 
 	if err := w.Ack(ref, WithMessage(message)); err != nil {
 		t.Fatalf("Could not ack message: %s", err.Error())
@@ -206,8 +213,8 @@ func TestConsumeAckWithFilter(t *testing.T) {
 
 	want := TestConsumeMessage
 	got := map[string]interface{}{
-		"metadata": message.metaData,
-		"content":  string(message.content),
+		"metadata": message.MetaData,
+		"content":  string(message.Content),
 	}
 
 	if diff := cmp.Diff(want, got); diff != "" {

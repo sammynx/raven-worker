@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 )
 
-func StringContent(s string) []byte {
-	return []byte(s)
+func StringContent(s string) Content {
+	return Content([]byte(s))
 }
 
-func JsonContent(v interface{}) []byte {
+func JsonContent(v interface{}) Content {
 	data, _ := json.Marshal(v)
-	return data
+	return Content(data)
 }

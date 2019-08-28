@@ -11,17 +11,32 @@ The goal of a `flow` is to filter, extract, enrich and store streaming data to e
 Workers come in three different types: `extract`, `transform` and `load` workers. These types are based on the [graph theory](https://en.wikipedia.org/wiki/Graph_theory) where each worker represents a `node`.  
 Consider any Raven flow a `directed acyclic graph`.  
 
+
+## About Workers
+
+* Workers need to be as simple as possible, only do their job. Everything else
+  will be handled by Raven.
+* If an error occurs, just panic. Raven will handle monitoring and restarting
+  workers. The Raven Worker base package will use a sequential backoff algorithm for
+  handling incidental errors.
+* If there isn't enough work, for a longer period, just stop. Raven will monitor
+  backlogs and start new workers when necessary. 
+
 ## How to use
 
 The following functions are exposed by the package:
 
-### NewRavenworker
+### New
 This initializes the worker.  
 
 For the Raven framework, a `worker` needs three variables to work with:
-* `RavenURL` to connect to the Raven framework.  
-* `WorkerID` to identify itself and get new jobs.  
-* `FlowID` to get the right jobs for the flow it belongs to and therefore receive the right events (messages) to process.  
+* `ravenworker.WithRavenURL` to connect to the Raven framework. Multiple values
+  can be used here, as it will use them in a round robin configuration.  
+* `ravenworker.WithWorkerID` to identify itself and get new jobs.  
+* `ravenworker.WithFlowID` to get the right jobs for the flow it belongs to and therefore receive the right events (messages) to process.  
+
+The `ravenworker.DefaultEnvironment()` method can be used for convenience, to
+load the configuration from environment variables.
 
 Example:
 ```go
@@ -34,6 +49,7 @@ Example:
     }
 ```
 
+
 Now you can use the methods:
 
 ### Consume
@@ -45,19 +61,28 @@ Example:
     if err != nil {
         // handle error
     }
+```
 
+### Get
+Get will retrieve the actual message.
+
+Example:
+```go
     msg, err := c.Get(ref)
-    if err != nil {
-        // handle error
-    }
-
-    // do something with the message
-    msg, err := c.Ack(ref, WithMessage(msg), WithFilter())
     if err != nil {
         // handle error
     }
 ```
 
+### Ack
+Ack will acknowledge the message and proceeds the flow.
+Example:
+```go
+    msg, err := c.Ack(ref, WithMessage(msg), WithFilter())
+    if err != nil {
+        // handle error
+    }
+```
 
 ### Produce
 When a worker is of type `transform` or `load`, use `Produce` to put the new message or ack the message.  
@@ -67,6 +92,10 @@ Example:
 ```go
     message := NewMessage().
                     Content(StringContent("This is the new message: "))
+
+    message.Content = "test"
+    message.Metadata
+    message = message.SetContent("")
 
     err := c.Produce(message)
     if err != nil {

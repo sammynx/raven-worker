@@ -5,44 +5,39 @@ import "encoding/json"
 // NewMessage will return a new empty Message struct
 //
 //     message := NewMessage()
-//         .Reference(ref)
-//         .Content(content)
-//         .Metadata(metadata)
 func NewMessage() Message {
 	return Message{}
 }
 
+type Content []byte
+
 type Message struct {
-	ref *Reference
+	MetaData map[string]interface{}
 
-	metaData map[string]interface{}
+	Content Content
+}
 
-	content []byte
+func (r *Message) UnmarshalJSON(data []byte) error {
+	v := struct {
+		Content  string                 `json:"content,omitempty"`
+		MetaData map[string]interface{} `json:"metadata,omitempty"`
+	}{}
+
+	if err := json.Unmarshal(data, &v); err != nil {
+		return nil
+	}
+
+	r.Content = []byte(v.Content)
+	r.MetaData = v.MetaData
+	return nil
 }
 
 func (r *Message) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Content  string                 `json:"content,omitempty"`
-		Metadata map[string]interface{} `json:"metadata,omitempty"`
+		MetaData map[string]interface{} `json:"metadata,omitempty"`
 	}{
-		Content:  string(r.content),
-		Metadata: r.metaData,
+		Content:  string(r.Content),
+		MetaData: r.MetaData,
 	})
-}
-
-func (m Message) Reference(ref *Reference) Message {
-	m.ref = ref
-	return m
-}
-
-// TODO: how to access Metadata?
-func (m Message) Metadata(metadata map[string]interface{}) Message {
-	m.metaData = metadata
-	return m
-}
-
-// TODO: how to access Content?
-func (m Message) Content(content []byte) Message {
-	m.content = content
-	return m
 }

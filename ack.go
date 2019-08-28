@@ -23,8 +23,8 @@ func WithFilter() AckOptionFunc {
 // WithFilter will keep the flow from processing further.
 func WithMessage(message Message) AckOptionFunc {
 	return func(r *ackRequest) error {
-		r.Content = string(message.content)
-		r.Metadata = message.metaData
+		r.Content = string(message.Content)
+		r.Metadata = message.MetaData
 		return nil
 	}
 }

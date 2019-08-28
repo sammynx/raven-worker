@@ -28,7 +28,7 @@ func exampleProduce() {
 	for i := 0; i < 10; i++ {
 		message := worker.NewMessage()
 
-		message = message.Content([]byte(fmt.Sprintf("message %v", time.Now().String())))
+		message.Content = worker.StringContent(fmt.Sprintf("message %v", time.Now().String()))
 
 		if err := c.Produce(message); err != nil {
 			log.Fatalf("Could not produce events: %s", err)
@@ -57,13 +57,9 @@ func exampleTransform() {
 			log.Fatalf("Could not consume message: %s\n", err)
 		}
 
-		newMessage := message.Content(
-			worker.StringContent(
-				fmt.Sprintf("This is the new message: %s", time.Now().String()),
-			),
-		)
+		message.Content = worker.StringContent("test")
 
-		if err := c.Ack(ref, ravenworker.WithMessage(newMessage)); err != nil {
+		if err := c.Ack(ref, ravenworker.WithMessage(message)); err != nil {
 			log.Fatalf("Could not ack message: %s\n", err)
 		}
 	}

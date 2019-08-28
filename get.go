@@ -22,18 +22,15 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 	cb := backoff.NewExponentialBackOff()
 
 	for {
-		cr, err := c.get(ref)
+		m, err := c.get(ref)
 		if err == nil {
-			return Message{
-				content:  []byte(cr.Content),
-				metaData: cr.MetaData,
-			}, nil
+			return m, nil
 		}
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not consume message for: %d: %s", zap.Duration("backoff", cb.GetElapsedTime()), err)
-			return EmptyMessage, err
+			c.l.Errorf("Could not get message for: %d: %s", zap.Duration("backoff", cb.GetElapsedTime()), err)
+			return Message{}, err
 		} else if t != nil {
 			t.Reset(next)
 		} else {
@@ -41,40 +38,33 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 			defer t.Stop()
 		}
 
-		c.l.Debugf("Got error while consuming message for: %s. Will retry in %v.", err.Error(), next)
+		c.l.Debugf("Got error while get message for: %s. Will retry in %v.", err.Error(), next)
 
 		<-t.C
 	}
 }
 
-type getResponse struct {
-	MetaData map[string]interface{} `json:"metadata"`
-
-	Content string `json:"content"`
-}
-
-func (c *DefaultWorker) get(ref Reference) (*getResponse, error) {
+func (c *DefaultWorker) get(ref Reference) (Message, error) {
 	// create the request
 	req, err := c.newRequest(http.MethodGet, path.Join("flow", c.FlowID, "events", ref.EventID), nil)
 	if err != nil {
-		return nil, err
+		return Message{}, err
 	}
 
 	// Do the request
 	resp, err := c.do(req)
 	if err != nil {
-		return nil, err
+		return Message{}, err
 	}
 
 	defer resp.Body.Close()
 
-	// In the response is the reference to the message
-	cr := getResponse{}
+	m := Message{}
 
 	// Decode into Reference
-	if err := json.NewDecoder(resp.Body).Decode(&cr); err != nil {
-		return nil, err
+	if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
+		return Message{}, err
 	}
 
-	return &cr, nil
+	return m, nil
 }

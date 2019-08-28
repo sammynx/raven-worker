@@ -8,10 +8,10 @@ import (
 
 var (
 	TestProduceMessage = Message{
-		metaData: map[string]interface{}{
+		MetaData: map[string]interface{}{
 			"Test": "Test",
 		},
-		content: []byte("content"),
+		Content: Content("content"),
 	}
 )
 
