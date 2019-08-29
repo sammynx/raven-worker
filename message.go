@@ -12,32 +12,32 @@ func NewMessage() Message {
 type Content []byte
 
 type Message struct {
-	MetaData map[string]interface{}
+	MetaData []Metadata
 
 	Content Content
 }
 
 func (r *Message) UnmarshalJSON(data []byte) error {
 	v := struct {
-		Content  string                 `json:"content,omitempty"`
-		MetaData map[string]interface{} `json:"metadata,omitempty"`
+		Content  []byte     `json:"content,omitempty"`
+		MetaData []Metadata `json:"metadata"`
 	}{}
 
 	if err := json.Unmarshal(data, &v); err != nil {
 		return nil
 	}
 
-	r.Content = []byte(v.Content)
+	r.Content = v.Content
 	r.MetaData = v.MetaData
 	return nil
 }
 
-func (r *Message) MarshalJSON() ([]byte, error) {
+func (r Message) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Content  string                 `json:"content,omitempty"`
-		MetaData map[string]interface{} `json:"metadata,omitempty"`
+		Content  []byte     `json:"content,omitempty"`
+		MetaData []Metadata `json:"metadata"`
 	}{
-		Content:  string(r.Content),
+		Content:  r.Content,
 		MetaData: r.MetaData,
 	})
 }

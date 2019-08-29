@@ -13,7 +13,7 @@ func TestRoundTripper(t *testing.T) {
 
 	urls := make([]string, 5)
 
-	for i, _ := range urls {
+	for i := range urls {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count++
 

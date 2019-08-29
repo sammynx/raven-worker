@@ -11,4 +11,6 @@ require (
 	github.com/uber-go/zap v1.10.0 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0
+	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
+	zombiezen.com/go/capnproto2 v2.17.0+incompatible
 )

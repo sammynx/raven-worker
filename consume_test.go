@@ -2,10 +2,8 @@ package ravenworker
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httputil"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -23,11 +21,6 @@ var (
 // TODO: change this to use mux
 // and have mux.Handle() for paths
 func DefaultConsumeHandler(t *testing.T, w http.ResponseWriter, r *http.Request) {
-	if true {
-	} else if data, err := httputil.DumpRequest(r, true); err == nil {
-		fmt.Printf("Request dump: %s", string(data))
-	}
-
 	if r.URL.Path == "/workers/workerid/work" {
 		w.WriteHeader(http.StatusOK)
 

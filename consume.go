@@ -16,7 +16,7 @@ var EmptyMessage = Message{}
 // no messages available, it will retry with a constant interval.
 //
 // Messages can be retrieved by using Get(message)
-
+//
 // Messages can be acknowledged by using Ack(ref)
 //
 //     ref, err := w.Consume()
@@ -101,7 +101,7 @@ func (c *DefaultWorker) waitForWork() (Reference, error) {
 		}
 
 		// we will loop only if no messages available
-		if err != ErrNotFound {
+		if err != ErrNoContent {
 			return Reference{}, err
 		}
 

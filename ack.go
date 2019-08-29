@@ -31,19 +31,24 @@ func WithMessage(message Message) AckOptionFunc {
 
 type ackRequest struct {
 	Content  string
-	Metadata map[string]interface{}
+	Metadata []Metadata
 	Filter   bool
 }
 
-func (r *ackRequest) MarshalJSON() ([]byte, error) {
+type Metadata struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func (r ackRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Content  string                 `json:"content,omitempty"`
-		Metadata map[string]interface{} `json:"metadata,omitempty"`
-		Filter   bool                   `json:"filter"`
+		Content  []byte     `json:"content,omitempty"`
+		Metadata []Metadata `json:"metadata"`
+		//Filter   bool       `json:"filter"`
 	}{
-		Content:  string(r.Content),
+		Content:  []byte(r.Content),
 		Metadata: r.Metadata,
-		Filter:   r.Filter,
+		//Filter: r.Filter,
 	})
 }
 
@@ -91,8 +96,6 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 
 		<-t.C
 	}
-
-	return nil
 }
 
 func (c *DefaultWorker) ack(ref Reference, ar ackRequest) error {
