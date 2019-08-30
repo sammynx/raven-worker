@@ -4,6 +4,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/cenkalti/backoff"
 	"github.com/labstack/gommon/log"
 	context "golang.org/x/net/context"
 	"zombiezen.com/go/capnproto2/rpc"
@@ -38,6 +39,7 @@ func (w *DefaultWorker) connect() error {
 	log.Infof("Connecting to rpc server: %s\n", u)
 
 	// TODO: how and when to reconnect?
+	// capnp.IsErrorClient(c capnp.Client)
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
 		return err
@@ -57,6 +59,10 @@ func (w *DefaultWorker) connect() error {
 func New(opts ...OptionFunc) (Worker, error) {
 	c := Config{
 		l: DefaultLogger,
+
+		newBackOff: func() backoff.BackOff {
+			return backoff.NewExponentialBackOff()
+		},
 	}
 
 	for _, optFn := range opts {

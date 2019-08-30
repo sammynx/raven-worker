@@ -5,7 +5,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	uuid "github.com/satori/go.uuid"
-	"go.uber.org/zap"
 	context "golang.org/x/net/context"
 )
 
@@ -18,7 +17,7 @@ import (
 func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 	var t *time.Timer
 
-	cb := backoff.NewExponentialBackOff()
+	cb := c.newBackOff()
 
 	for {
 		m, err := c.get(ref)
@@ -28,7 +27,7 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not get message for: %d: %s", zap.Duration("backoff", cb.GetElapsedTime()), err)
+			c.l.Errorf("Could not get message: %s", err)
 			return Message{}, err
 		} else if t != nil {
 			t.Reset(next)
@@ -41,6 +40,20 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 
 		<-t.C
 	}
+}
+
+func transformMeta(md Event_Metadata_List) []Metadata {
+	metadata := make([]Metadata, md.Len())
+
+	for i := range metadata {
+		key, _ := md.At(i).Key()
+		metadata[i].Key = key
+
+		value, _ := md.At(i).Value()
+		metadata[i].Value = value
+	}
+
+	return metadata
 }
 
 func (c *DefaultWorker) get(ref Reference) (Message, error) {
@@ -69,15 +82,7 @@ func (c *DefaultWorker) get(ref Reference) (Message, error) {
 		return Message{}, err
 	}
 
-	metadata := make([]Metadata, meta.Len())
-
-	for i := range metadata {
-		key, _ := meta.At(i).Key()
-		metadata[i].Key = key
-
-		value, _ := meta.At(i).Value()
-		metadata[i].Value = value
-	}
+	metadata := transformMeta(meta)
 
 	return Message{
 		Content:  content,

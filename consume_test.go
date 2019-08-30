@@ -2,14 +2,15 @@ package ravenworker
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"testing"
 
+	"github.com/cenkalti/backoff"
 	"github.com/google/go-cmp/cmp"
 	uuid "github.com/satori/go.uuid"
 )
 
-// TODO: remove backoff in case of test
 func TestConsume(t *testing.T) {
 	ackID := uuid.NewV4()
 	eventID := uuid.NewV4()
@@ -31,7 +32,7 @@ func TestConsume(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
-		// TODO: WithMaxRetries(0),
+		WithBackOff(StopBackOff),
 	)
 	if err != nil {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
@@ -51,7 +52,6 @@ func TestConsume(t *testing.T) {
 	}
 }
 
-// TODO: remove backoff in case of test
 func TestConsumeAck(t *testing.T) {
 	ackID := uuid.NewV4()
 	eventID := uuid.NewV4()
@@ -63,7 +63,14 @@ func TestConsumeAck(t *testing.T) {
 			return nil
 		},
 		ackJob: func(ackJob Workflow_ackJob) error {
-			// TODO: verify input params
+			if v, err := ackJob.Params.AckID(); err != nil {
+				return err
+			} else if id, err := uuid.FromBytes(v); err != nil {
+				return fmt.Errorf("AckID is not a valid UUID: %s", err)
+			} else if !uuid.Equal(id, ackID) {
+				return fmt.Errorf("Unexpected AckID: got=%s", v)
+			}
+
 			ackJob.Results.SetAcked(true)
 			return nil
 		},
@@ -78,7 +85,7 @@ func TestConsumeAck(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
-		// TODO: WithMaxRetries(0),
+		WithBackOff(StopBackOff),
 	)
 	if err != nil {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
@@ -94,7 +101,6 @@ func TestConsumeAck(t *testing.T) {
 	}
 }
 
-// TODO: remove backoff in case of test
 func TestConsumeAckWithContent(t *testing.T) {
 	ackID := uuid.NewV4()
 	eventID := uuid.NewV4()
@@ -135,7 +141,7 @@ func TestConsumeAckWithContent(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
-		// TODO: WithMaxRetries(0),
+		WithBackOff(StopBackOff),
 	)
 	if err != nil {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
@@ -163,6 +169,14 @@ func TestConsumeGet(t *testing.T) {
 			return nil
 		},
 		getEvent: func(getEvent Workflow_getEvent) error {
+			if v, err := getEvent.Params.EventID(); err != nil {
+				return err
+			} else if id, err := uuid.FromBytes(v); err != nil {
+				return fmt.Errorf("EventID is not a valid UUID: %s", err)
+			} else if !uuid.Equal(id, eventID) {
+				return fmt.Errorf("Unexpected EventID: got=%s", v)
+			}
+
 			evt, err := getEvent.Results.NewEvent()
 			if err != nil {
 				return err
@@ -184,7 +198,7 @@ func TestConsumeGet(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
-		// TODO: WithMaxRetries(0),
+		WithBackOff(StopBackOff),
 	)
 	if err != nil {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
@@ -205,5 +219,45 @@ func TestConsumeGet(t *testing.T) {
 		Content:  JsonContent("test"),
 	}); diff != "" {
 		t.Fatalf("Get() mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestBackOff(t *testing.T) {
+	counter := 0
+
+	srvr, err := testServer(&workflowServer{
+		getJob: func(getJob Workflow_getJob) error {
+			counter++
+			return errors.New("ERROR")
+		},
+	})
+	if err != nil {
+		t.Fatalf("Could not start test server: %s", err.Error())
+	}
+
+	defer srvr.Close()
+
+	w, err := New(
+		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
+		MustWithFlowID(flowID.String()),
+		MustWithWorkerID(workerID.String()),
+		WithBackOff(func() backoff.BackOff {
+			cb := &backoff.ZeroBackOff{}
+			return backoff.WithMaxRetries(cb, 5)
+		}),
+	)
+	if err != nil {
+		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
+	}
+
+	// we are expecting an error
+	if _, err := w.Consume(); err == nil {
+		t.Fatalf("Expected an error.")
+	} else if err.Error() != "job.capnp:Workflow.getJob: rpc exception: ERROR" {
+		t.Fatalf("Expected different error.")
+	}
+
+	if counter != 6 {
+		t.Fatalf("Backoff failed %d", counter)
 	}
 }

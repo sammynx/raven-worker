@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/cenkalti/backoff"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -57,6 +59,15 @@ func WithLogger(l Logger) (OptionFunc, error) {
 		c.l = l
 		return nil
 	}, nil
+}
+
+type BackOffFunc func() backoff.BackOff
+
+func WithBackOff(fn BackOffFunc) OptionFunc {
+	return func(c *Config) error {
+		c.newBackOff = fn
+		return nil
+	}
 }
 
 // errorFunc will pass the initialization error through

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
-	"go.uber.org/zap"
 	context "golang.org/x/net/context"
 	capnp "zombiezen.com/go/capnproto2"
 )
@@ -29,7 +28,7 @@ func (e EventID) String() string {
 func (c *DefaultWorker) Produce(message Message) error {
 	var t *time.Timer
 
-	cb := backoff.NewExponentialBackOff()
+	cb := c.newBackOff()
 
 	for {
 		err := c.produce(message)
@@ -39,7 +38,7 @@ func (c *DefaultWorker) Produce(message Message) error {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not produce message for: %d: %s", zap.Duration("backoff", cb.GetElapsedTime()), err)
+			c.l.Errorf("Could not produce message: %s", err)
 			return err
 		} else if t != nil {
 			t.Reset(next)

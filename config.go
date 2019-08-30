@@ -15,6 +15,8 @@ type Config struct {
 	FlowID uuid.UUID
 
 	l Logger
+
+	newBackOff BackOffFunc
 }
 
 func (c Config) validate() error {

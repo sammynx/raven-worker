@@ -5,7 +5,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	uuid "github.com/satori/go.uuid"
-	"go.uber.org/zap"
 	context "golang.org/x/net/context"
 )
 
@@ -37,7 +36,7 @@ var EmptyMessage = Message{}
 func (c *DefaultWorker) Consume() (Reference, error) {
 	var t *time.Timer
 
-	cb := backoff.NewExponentialBackOff()
+	cb := c.newBackOff()
 
 	for {
 		reference, err := c.waitForWork()
@@ -47,7 +46,7 @@ func (c *DefaultWorker) Consume() (Reference, error) {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not consume message for: %d: %s", zap.Duration("backoff", cb.GetElapsedTime()), err)
+			c.l.Errorf("Could not consume message: %s", err)
 			return Reference{}, err
 		} else if t != nil {
 			t.Reset(next)
@@ -76,7 +75,6 @@ func (c *DefaultWorker) waitForWork() (Reference, error) {
 	// should restart the worker if backlog is growing.
 	var cb backoff.BackOff
 	cb = backoff.NewConstantBackOff(time.Millisecond * 200)
-	cb = backoff.WithMaxRetries(cb, 0)
 
 	for {
 		res, err := c.w.GetJob(context.Background(), func(params Workflow_getJob_Params) error {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	uuid "github.com/satori/go.uuid"
-	"go.uber.org/zap"
 	context "golang.org/x/net/context"
 )
 
@@ -60,7 +59,7 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 
 	var t *time.Timer
 
-	cb := backoff.NewExponentialBackOff()
+	cb := c.newBackOff()
 
 	for {
 		err := c.ack(ref, ar)
@@ -70,7 +69,7 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not ack message for: %d: %s", zap.Duration("backoff", cb.GetElapsedTime()), err)
+			c.l.Errorf("Could not ack message: %s", err)
 			return err
 		} else if t != nil {
 			t.Reset(next)
