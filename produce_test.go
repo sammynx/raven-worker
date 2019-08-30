@@ -1,11 +1,6 @@
 package ravenworker
 
-import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
-)
-
+/*
 var (
 	TestProduceMessage = Message{
 		MetaData: map[string]interface{}{
@@ -53,3 +48,4 @@ func TestProduce(t *testing.T) {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
 }
+*/

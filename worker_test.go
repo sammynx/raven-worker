@@ -1,16 +1,25 @@
 package ravenworker
 
 func MustWithRavenURL(s string) OptionFunc {
-	fn, _ := WithRavenURL(s)
+	fn, err := WithRavenURL(s)
+	if err != nil {
+		panic(err)
+	}
 	return fn
 }
 
 func MustWithFlowID(flowID string) OptionFunc {
-	fn, _ := WithFlowID(flowID)
+	fn, err := WithFlowID(flowID)
+	if err != nil {
+		panic(err)
+	}
 	return fn
 }
 
 func MustWithWorkerID(workerID string) OptionFunc {
-	fn, _ := WithWorkerID(workerID)
+	fn, err := WithWorkerID(workerID)
+	if err != nil {
+		panic(err)
+	}
 	return fn
 }

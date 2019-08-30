@@ -1,12 +1,11 @@
 package ravenworker
 
 import (
-	"encoding/json"
-	"io"
 	"net"
+	"sync"
 
+	"github.com/labstack/gommon/log"
 	context "golang.org/x/net/context"
-	capnp "zombiezen.com/go/capnproto2"
 	"zombiezen.com/go/capnproto2/rpc"
 )
 
@@ -21,41 +20,37 @@ type DefaultWorker struct {
 	Config
 
 	w *Workflow
+	m sync.Mutex
+
+	connectionCounter int
 }
 
-/*
-type ReconnectingWorkflow struct {
-	w *Workflow
+func (w *DefaultWorker) isConnected() {
+
 }
 
-func (rw *ReconnectingWorkflow) PutEvent(ctx context.Context, fn func(params Workflow_putEvent_Params) error) {
-	if err := rw.w.PutEvent(ctx, fn); err == io.EOF {
-		// reconnect
-		// rw.reconnect()
-		// retry will be handled by backoff timer
+func (w *DefaultWorker) connect() error {
+	w.m.Lock()
+	defer w.m.Unlock()
+
+	u := w.urls[w.connectionCounter%len(w.urls)]
+
+	log.Infof("Connecting to rpc server: %s\n", u)
+
+	// TODO: how and when to reconnect?
+	conn, err := net.Dial("tcp", u.Host)
+	if err != nil {
+		return err
 	}
-}
-
-func (rw *ReconnectingWorkflow) connect() (net.Conn, error) {
-	// reconnect
-	// use next host
-	// capnproto://127.0.0.1:8023
-
-	conn, _ := net.Dial("tcp", "127.0.0.1:8023")
 
 	rpcconn := rpc.NewConn(rpc.StreamTransport(conn))
-	rw.w = Workflow{Client: rpcconn.Bootstrap(context.Background())}
-}
-*/
 
-// TODO: connection error handling
-type ReconnectingClient struct {
-	capnp.Client
-}
+	client := rpcconn.Bootstrap(context.Background())
 
-func (rc ReconnectingClient) Call(call *capnp.Call) capnp.Answer {
-	answer := rc.Client.Call(call)
-	return answer
+	w.w = &Workflow{Client: client}
+
+	w.connectionCounter++
+	return err
 }
 
 // New returns a new configured Raven Worker client
@@ -74,30 +69,15 @@ func New(opts ...OptionFunc) (Worker, error) {
 		return nil, err
 	}
 
-	// TODO: how and when to reconnect?
-	conn, _ := net.Dial("tcp", "127.0.0.1:8023")
-
-	rpcconn := rpc.NewConn(rpc.StreamTransport(conn))
-
-	client := ReconnectingClient{rpcconn.Bootstrap(context.Background())}
-
-	w := Workflow{Client: client}
-
-	return &DefaultWorker{
+	w := &DefaultWorker{
 		Config: c,
+	}
 
-		w: &w,
-	}, nil
-}
+	// TODO: just start and have backoff handle
+	if err := w.connect(); err != nil {
+		return nil, err
+	}
 
-// JsonReader will return a json encoder of msg
-func JsonReader(v interface{}) io.ReadCloser {
-	pr, pw := io.Pipe()
+	return w, nil
 
-	go func() {
-		err := json.NewEncoder(pw).Encode(v)
-		pw.CloseWithError(err)
-	}()
-
-	return pr
 }

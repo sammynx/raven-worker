@@ -1,7 +1,6 @@
 package ravenworker
 
 import (
-	"io"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -86,11 +85,6 @@ func (c *DefaultWorker) produce(message Message) error {
 
 		return params.SetEvent(capnpEvent)
 	}).Struct()
-
-	if err == io.EOF {
-		// reconnect
-		// TODO: rc.reconnect
-	}
 
 	return err
 }
