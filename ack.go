@@ -1,13 +1,12 @@
 package ravenworker
 
 import (
-	"encoding/json"
-	"net/http"
-	"path"
 	"time"
 
 	"github.com/cenkalti/backoff"
+	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
+	context "golang.org/x/net/context"
 )
 
 type AckOptionFunc func(r *ackRequest) error
@@ -23,14 +22,14 @@ func WithFilter() AckOptionFunc {
 // WithFilter will keep the flow from processing further.
 func WithMessage(message Message) AckOptionFunc {
 	return func(r *ackRequest) error {
-		r.Content = string(message.Content)
+		r.Content = message.Content
 		r.Metadata = message.MetaData
 		return nil
 	}
 }
 
 type ackRequest struct {
-	Content  string
+	Content  []byte
 	Metadata []Metadata
 	Filter   bool
 }
@@ -40,18 +39,6 @@ type Metadata struct {
 	Value string `json:"value"`
 }
 
-func (r ackRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Content  []byte     `json:"content,omitempty"`
-		Metadata []Metadata `json:"metadata"`
-		//Filter   bool       `json:"filter"`
-	}{
-		Content:  []byte(r.Content),
-		Metadata: r.Metadata,
-		//Filter: r.Filter,
-	})
-}
-
 // Ack will acknowledge the message, only consumed messages are
 // allowed.
 //
@@ -59,7 +46,7 @@ func (r ackRequest) MarshalJSON() ([]byte, error) {
 func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 	// default ackRequest
 	ar := ackRequest{
-		Content:  "",
+		Content:  nil,
 		Metadata: nil,
 		Filter:   false,
 	}
@@ -99,21 +86,41 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 }
 
 func (c *DefaultWorker) ack(ref Reference, ar ackRequest) error {
-	body := JsonReader(ar)
+	ackID, _ := uuid.FromString(ref.AckID)
 
-	// create the request
-	req, err := c.newRequest(http.MethodPut, path.Join("workers", c.WorkerID, "ack", ref.AckID), body)
-	if err != nil {
-		return err
-	}
+	_, err := c.w.AckJob(context.Background(), func(params Workflow_ackJob_Params) error {
+		e, err := params.NewEvent()
+		if err != nil {
+			return err
+		}
 
-	// Do the request
-	resp, err := c.do(req)
-	if err != nil {
-		return err
-	}
+		if err := e.SetContent([]byte(ar.Content)); err != nil {
+			return err
+		}
 
-	defer resp.Body.Close()
+		eventMetadataList, _ := e.NewMeta(int32(len(ar.Metadata)))
 
-	return nil
+		for i := range ar.Metadata {
+			meta, _ := NewEvent_Metadata(e.Struct.Segment())
+			_ = meta.SetKey(ar.Metadata[i].Key)
+			_ = meta.SetValue(ar.Metadata[i].Value)
+			_ = eventMetadataList.Set(i, meta)
+		}
+
+		if err := e.SetMeta(eventMetadataList); err != nil {
+			return err
+		}
+
+		if err := params.SetEvent(e); err != nil {
+			return err
+		}
+
+		if err := params.SetAckID(ackID.Bytes()); err != nil {
+			return err
+		}
+
+		return nil
+	}).Struct()
+
+	return err
 }

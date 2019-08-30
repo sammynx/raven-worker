@@ -8,6 +8,7 @@ require (
 	github.com/labstack/gommon v0.3.0
 	github.com/olivere/balancers v1.0.1
 	github.com/pingcap/log v0.0.0-20190715063458-479153f07ebd
+	github.com/satori/go.uuid v1.2.0
 	github.com/uber-go/zap v1.10.0 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0

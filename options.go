@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type OptionFunc func(*Config) error
@@ -27,14 +29,23 @@ func WithRavenURL(urlStr string) (OptionFunc, error) {
 	}, nil
 }
 
-func WithFlowID(flowID string) (OptionFunc, error) {
+func WithFlowID(s string) (OptionFunc, error) {
+	flowID, err := uuid.FromString(s)
+	if err != nil {
+		return nil, err
+	}
+
 	return func(c *Config) error {
 		c.FlowID = flowID
 		return nil
 	}, nil
 }
 
-func WithWorkerID(workerID string) (OptionFunc, error) {
+func WithWorkerID(s string) (OptionFunc, error) {
+	workerID, err := uuid.FromString(s)
+	if err != nil {
+		return nil, err
+	}
 	return func(c *Config) error {
 		c.WorkerID = workerID
 		return nil

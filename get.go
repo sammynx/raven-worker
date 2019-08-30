@@ -1,13 +1,12 @@
 package ravenworker
 
 import (
-	"encoding/json"
-	"net/http"
-	"path"
 	"time"
 
 	"github.com/cenkalti/backoff"
+	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
+	context "golang.org/x/net/context"
 )
 
 // Get will retrieve the event for reference.
@@ -45,26 +44,43 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 }
 
 func (c *DefaultWorker) get(ref Reference) (Message, error) {
-	// create the request
-	req, err := c.newRequest(http.MethodGet, path.Join("flow", c.FlowID, "events", ref.EventID), nil)
+	eventID, _ := uuid.FromString(ref.EventID)
+
+	res, err := c.w.GetEvent(context.Background(), func(params Workflow_getEvent_Params) error {
+		return params.SetEventID(eventID.Bytes())
+	}).Struct()
+
 	if err != nil {
 		return Message{}, err
 	}
 
-	// Do the request
-	resp, err := c.do(req)
+	event, err := res.Event()
 	if err != nil {
 		return Message{}, err
 	}
 
-	defer resp.Body.Close()
-
-	m := Message{}
-
-	// Decode into Reference
-	if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
+	content, err := event.Content()
+	if err != nil {
 		return Message{}, err
 	}
 
-	return m, nil
+	meta, err := event.Meta()
+	if err != nil {
+		return Message{}, err
+	}
+
+	metadata := make([]Metadata, meta.Len())
+
+	for i := range metadata {
+		key, _ := meta.At(i).Key()
+		metadata[i].Key = key
+
+		value, _ := meta.At(i).Value()
+		metadata[i].Value = value
+	}
+
+	return Message{
+		Content:  content,
+		MetaData: metadata,
+	}, nil
 }

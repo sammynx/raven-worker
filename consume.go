@@ -1,13 +1,12 @@
 package ravenworker
 
 import (
-	"encoding/json"
-	"net/http"
-	"path"
 	"time"
 
 	"github.com/cenkalti/backoff"
+	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
+	context "golang.org/x/net/context"
 )
 
 var EmptyMessage = Message{}
@@ -63,45 +62,42 @@ func (c *DefaultWorker) Consume() (Reference, error) {
 	}
 }
 
-// getWork will ask the server for work
-func (c *DefaultWorker) getWork() (Reference, error) {
-	req, err := c.newRequest(http.MethodGet, path.Join("workers", c.WorkerID, "work"), nil)
-	if err != nil {
-		return Reference{}, err
-	}
-
-	resp, err := c.do(req)
-	if err != nil {
-		return Reference{}, err
-	}
-
-	defer resp.Body.Close()
-
-	// In the response is the reference to the message
-	ref := Reference{}
-
-	// Decode into Reference
-	if err := json.NewDecoder(resp.Body).Decode(&ref); err != nil {
-		return Reference{}, err
-	}
-
-	return ref, nil
+func IsNotFoundErr(err error) bool {
+	return err.Error() == "job.capnp:Workflow.getJob: rpc exception: item not found"
 }
 
 // waitForWork will wait for work. If no work is available it will retry.
 func (c *DefaultWorker) waitForWork() (Reference, error) {
 	var t *time.Timer
 
-	cb := backoff.NewConstantBackOff(time.Millisecond * 200)
+	// new constant backoff with infinite retries, this could
+	// be changed in the future to automatically stop workers
+	// if no messages have been seen for a while. Formation
+	// should restart the worker if backlog is growing.
+	var cb backoff.BackOff
+	cb = backoff.NewConstantBackOff(time.Millisecond * 200)
+	cb = backoff.WithMaxRetries(cb, 0)
 
 	for {
-		reference, err := c.getWork()
+		res, err := c.w.GetJob(context.Background(), func(params Workflow_getJob_Params) error {
+			return params.SetWorkerID(c.WorkerID.Bytes())
+		}).Struct()
+
 		if err == nil {
-			return reference, nil
+			ackID, _ := res.AckID()
+			ackUUID, _ := uuid.FromBytes(ackID)
+
+			eventID, _ := res.EventID()
+			eventUUID, _ := uuid.FromBytes(eventID)
+
+			return Reference{
+				AckID:   ackUUID.String(),
+				EventID: eventUUID.String(),
+			}, nil
 		}
 
 		// we will loop only if no messages available
-		if err != ErrNoContent {
+		if !IsNotFoundErr(err) {
 			return Reference{}, err
 		}
 

@@ -1,14 +1,13 @@
 package ravenworker
 
 import (
-	"net/http"
-	"path"
+	"io"
 	"time"
-
-	"io/ioutil"
 
 	"github.com/cenkalti/backoff"
 	"go.uber.org/zap"
+	context "golang.org/x/net/context"
+	capnp "zombiezen.com/go/capnproto2"
 )
 
 type EventID string
@@ -57,57 +56,41 @@ func (c *DefaultWorker) Produce(message Message) error {
 }
 
 func (c *DefaultWorker) produce(message Message) error {
-	eventID, err := c.getNewEventID()
-	if err != nil {
-		return err
+	_, err := c.w.PutEvent(context.Background(), func(params Workflow_putEvent_Params) error {
+		if err := params.SetFlowID(c.FlowID.Bytes()); err != nil {
+			return err
+		}
+
+		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
+
+		capnpEvent, _ := NewRootEvent(seg)
+
+		capnpEvent.SetFilter(false)
+
+		if err := capnpEvent.SetContent(message.Content); err != nil {
+			return err
+		}
+
+		eventMetadataList, _ := NewEvent_Metadata_List(seg, int32(len(message.MetaData)))
+
+		for i := range message.MetaData {
+			meta, _ := NewEvent_Metadata(seg)
+			_ = meta.SetKey(message.MetaData[i].Key)
+			_ = meta.SetValue(message.MetaData[i].Value)
+			_ = eventMetadataList.Set(i, meta)
+		}
+
+		if err := capnpEvent.SetMeta(eventMetadataList); err != nil {
+			return err
+		}
+
+		return params.SetEvent(capnpEvent)
+	}).Struct()
+
+	if err == io.EOF {
+		// reconnect
+		// TODO: rc.reconnect
 	}
 
-	if err := c.putEvent(eventID, message); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// getEventID will retrieve a new event id from workflow
-func (c *DefaultWorker) getNewEventID() (EventID, error) {
-	// create the request
-	req, err := c.newRequest(http.MethodPost, path.Join("flow", c.FlowID, "events"), nil)
-	if err != nil {
-		return "", err
-	}
-
-	// Do the request
-	resp, err := c.do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return EventID(data), nil
-}
-
-// putEvent will put the new message with event id to workflow
-func (c *DefaultWorker) putEvent(eventID EventID, message Message) error {
-	body := JsonReader(message)
-
-	req, err := c.newRequest(http.MethodPut, path.Join("flow", c.FlowID, "events", eventID.String()), body)
-	if err != nil {
-		return err
-	}
-
-	resp, err := c.do(req)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	return nil
+	return err
 }
