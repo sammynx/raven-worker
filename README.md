@@ -76,6 +76,7 @@ Example:
 
 ### Ack
 Ack will acknowledge the message and proceeds the flow.
+
 Example:
 ```go
     msg, err := c.Ack(ref, WithMessage(msg), WithFilter())
@@ -86,19 +87,16 @@ Example:
 
 ### Produce
 When a worker is of type `transform` or `load`, use `Produce` to put the new message or ack the message.  
-The actual content (payload) is stored in `message.Content` which takes a string.  
+The actual content (payload) is stored in `message.Content` which takes a byte
+array. Convenience functions like JsonContent (which encodes the object to json
+byte array) exists.
 
 Example:
 ```go
-    message := NewMessage().
-                    Content(StringContent("This is the new message: "))
+    message := NewMessage()
+    message.Content = JsonContent(obj)
 
-    message.Content = "test"
-    message.Metadata
-    message = message.SetContent("")
-
-    err := c.Produce(message)
-    if err != nil {
+    if err := c.Produce(message); err != nil {
         // handle error
     }
 ```
