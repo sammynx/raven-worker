@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	uuid "github.com/satori/go.uuid"
 	context "golang.org/x/net/context"
 )
@@ -42,7 +43,7 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 	}
 }
 
-func transformMeta(md Event_Metadata_List) []Metadata {
+func transformMeta(md workflow.Event_Metadata_List) []Metadata {
 	metadata := make([]Metadata, md.Len())
 
 	for i := range metadata {
@@ -59,7 +60,7 @@ func transformMeta(md Event_Metadata_List) []Metadata {
 func (c *DefaultWorker) get(ref Reference) (Message, error) {
 	eventID, _ := uuid.FromString(ref.EventID)
 
-	res, err := c.w.GetEvent(context.Background(), func(params Workflow_getEvent_Params) error {
+	res, err := c.w.GetEvent(context.Background(), func(params workflow.Workflow_getEvent_Params) error {
 		return params.SetEventID(eventID.Bytes())
 	}).Struct()
 

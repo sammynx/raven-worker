@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	context "golang.org/x/net/context"
 	capnp "zombiezen.com/go/capnproto2"
 )
@@ -54,14 +55,14 @@ func (c *DefaultWorker) Produce(message Message) error {
 }
 
 func (c *DefaultWorker) produce(message Message) error {
-	_, err := c.w.PutEvent(context.Background(), func(params Workflow_putEvent_Params) error {
+	_, err := c.w.PutEvent(context.Background(), func(params workflow.Workflow_putEvent_Params) error {
 		if err := params.SetFlowID(c.FlowID.Bytes()); err != nil {
 			return err
 		}
 
 		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 
-		capnpEvent, _ := NewRootEvent(seg)
+		capnpEvent, _ := workflow.NewRootEvent(seg)
 
 		capnpEvent.SetFilter(false)
 
@@ -69,10 +70,10 @@ func (c *DefaultWorker) produce(message Message) error {
 			return err
 		}
 
-		eventMetadataList, _ := NewEvent_Metadata_List(seg, int32(len(message.MetaData)))
+		eventMetadataList, _ := workflow.NewEvent_Metadata_List(seg, int32(len(message.MetaData)))
 
 		for i := range message.MetaData {
-			meta, _ := NewEvent_Metadata(seg)
+			meta, _ := workflow.NewEvent_Metadata(seg)
 			_ = meta.SetKey(message.MetaData[i].Key)
 			_ = meta.SetValue(message.MetaData[i].Value)
 			_ = eventMetadataList.Set(i, meta)

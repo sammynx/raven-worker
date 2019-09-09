@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/google/go-cmp/cmp"
 	uuid "github.com/satori/go.uuid"
 )
@@ -16,7 +17,7 @@ func TestConsume(t *testing.T) {
 	eventID := uuid.NewV4()
 
 	srvr, err := testServer(&workflowServer{
-		getJob: func(getJob Workflow_getJob) error {
+		getJob: func(getJob workflow.Workflow_getJob) error {
 			getJob.Results.SetAckID(ackID.Bytes())
 			getJob.Results.SetEventID(eventID.Bytes())
 			return nil
@@ -57,12 +58,12 @@ func TestConsumeAck(t *testing.T) {
 	eventID := uuid.NewV4()
 
 	srvr, err := testServer(&workflowServer{
-		getJob: func(getJob Workflow_getJob) error {
+		getJob: func(getJob workflow.Workflow_getJob) error {
 			getJob.Results.SetAckID(ackID.Bytes())
 			getJob.Results.SetEventID(eventID.Bytes())
 			return nil
 		},
-		ackJob: func(ackJob Workflow_ackJob) error {
+		ackJob: func(ackJob workflow.Workflow_ackJob) error {
 			if v, err := ackJob.Params.AckID(); err != nil {
 				return err
 			} else if id, err := uuid.FromBytes(v); err != nil {
@@ -110,12 +111,12 @@ func TestConsumeAckWithContent(t *testing.T) {
 	}
 
 	srvr, err := testServer(&workflowServer{
-		getJob: func(getJob Workflow_getJob) error {
+		getJob: func(getJob workflow.Workflow_getJob) error {
 			getJob.Results.SetAckID(ackID.Bytes())
 			getJob.Results.SetEventID(eventID.Bytes())
 			return nil
 		},
-		ackJob: func(ackJob Workflow_ackJob) error {
+		ackJob: func(ackJob workflow.Workflow_ackJob) error {
 			event, err := ackJob.Params.Event()
 			if err != nil {
 				return err
@@ -162,13 +163,13 @@ func TestConsumeGet(t *testing.T) {
 	eventID := uuid.NewV4()
 
 	srvr, err := testServer(&workflowServer{
-		getJob: func(getJob Workflow_getJob) error {
+		getJob: func(getJob workflow.Workflow_getJob) error {
 			getJob.Results.SetAckID(ackID.Bytes())
 			getJob.Results.SetEventID(eventID.Bytes())
 
 			return nil
 		},
-		getEvent: func(getEvent Workflow_getEvent) error {
+		getEvent: func(getEvent workflow.Workflow_getEvent) error {
 			if v, err := getEvent.Params.EventID(); err != nil {
 				return err
 			} else if id, err := uuid.FromBytes(v); err != nil {
@@ -226,7 +227,7 @@ func TestBackOff(t *testing.T) {
 	counter := 0
 
 	srvr, err := testServer(&workflowServer{
-		getJob: func(getJob Workflow_getJob) error {
+		getJob: func(getJob workflow.Workflow_getJob) error {
 			counter++
 			return errors.New("ERROR")
 		},

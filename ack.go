@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	uuid "github.com/satori/go.uuid"
 	context "golang.org/x/net/context"
 )
@@ -87,7 +88,7 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 func (c *DefaultWorker) ack(ref Reference, ar ackRequest) error {
 	ackID, _ := uuid.FromString(ref.AckID)
 
-	_, err := c.w.AckJob(context.Background(), func(params Workflow_ackJob_Params) error {
+	_, err := c.w.AckJob(context.Background(), func(params workflow.Workflow_ackJob_Params) error {
 		e, err := params.NewEvent()
 		if err != nil {
 			return err
@@ -100,7 +101,7 @@ func (c *DefaultWorker) ack(ref Reference, ar ackRequest) error {
 		eventMetadataList, _ := e.NewMeta(int32(len(ar.Metadata)))
 
 		for i := range ar.Metadata {
-			meta, _ := NewEvent_Metadata(e.Struct.Segment())
+			meta, _ := workflow.NewEvent_Metadata(e.Struct.Segment())
 			_ = meta.SetKey(ar.Metadata[i].Key)
 			_ = meta.SetValue(ar.Metadata[i].Value)
 			_ = eventMetadataList.Set(i, meta)

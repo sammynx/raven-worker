@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/labstack/gommon/log"
 	context "golang.org/x/net/context"
 	"zombiezen.com/go/capnproto2/rpc"
@@ -20,14 +21,10 @@ type Worker interface {
 type DefaultWorker struct {
 	Config
 
-	w *Workflow
+	w *workflow.Workflow
 	m sync.Mutex
 
 	connectionCounter int
-}
-
-func (w *DefaultWorker) isConnected() {
-
 }
 
 func (w *DefaultWorker) connect() error {
@@ -36,10 +33,8 @@ func (w *DefaultWorker) connect() error {
 
 	u := w.urls[w.connectionCounter%len(w.urls)]
 
-	log.Infof("Connecting to rpc server: %s\n", u)
+	log.Infof("Connecting to rpc server: %s", u)
 
-	// TODO: how and when to reconnect?
-	// capnp.IsErrorClient(c capnp.Client)
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
 		return err
@@ -49,7 +44,7 @@ func (w *DefaultWorker) connect() error {
 
 	client := rpcconn.Bootstrap(context.Background())
 
-	w.w = &Workflow{Client: client}
+	w.w = &workflow.Workflow{Client: client}
 
 	w.connectionCounter++
 	return err

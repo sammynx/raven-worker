@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	uuid "github.com/satori/go.uuid"
 	context "golang.org/x/net/context"
 )
@@ -77,7 +78,7 @@ func (c *DefaultWorker) waitForWork() (Reference, error) {
 	cb = backoff.NewConstantBackOff(time.Millisecond * 200)
 
 	for {
-		res, err := c.w.GetJob(context.Background(), func(params Workflow_getJob_Params) error {
+		res, err := c.w.GetJob(context.Background(), func(params workflow.Workflow_getJob_Params) error {
 			return params.SetWorkerID(c.WorkerID.Bytes())
 		}).Struct()
 

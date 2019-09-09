@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/google/go-cmp/cmp"
 	uuid "github.com/satori/go.uuid"
 )
@@ -28,7 +29,7 @@ func StopBackOff() backoff.BackOff {
 
 func TestProduce(t *testing.T) {
 	srvr, err := testServer(&workflowServer{
-		putEvent: func(putEvent Workflow_putEvent) error {
+		putEvent: func(putEvent workflow.Workflow_putEvent) error {
 			if v, err := putEvent.Params.FlowID(); err != nil {
 				return err
 			} else if id, err := uuid.FromBytes(v); err != nil {

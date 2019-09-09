@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dutchsec/raven-worker/workflow"
 	uuid "github.com/satori/go.uuid"
 	"zombiezen.com/go/capnproto2/rpc"
 )
@@ -47,14 +48,14 @@ func TestMain(m *testing.M) {
 }
 
 type workflowServer struct {
-	getEvent       func(getEvent Workflow_getEvent) error
-	getJob         func(getJob Workflow_getJob) error
-	ackJob         func(ackJob Workflow_ackJob) error
-	putEvent       func(putEvent Workflow_putEvent) error
-	getLatestEvent func(getLatestEvent Workflow_getLatestEvent) error
+	getEvent       func(getEvent workflow.Workflow_getEvent) error
+	getJob         func(getJob workflow.Workflow_getJob) error
+	ackJob         func(ackJob workflow.Workflow_ackJob) error
+	putEvent       func(putEvent workflow.Workflow_putEvent) error
+	getLatestEvent func(getLatestEvent workflow.Workflow_getLatestEvent) error
 }
 
-func (w *workflowServer) PutEvent(putEvent Workflow_putEvent) error {
+func (w *workflowServer) PutEvent(putEvent workflow.Workflow_putEvent) error {
 	if w.putEvent != nil {
 		return w.putEvent(putEvent)
 	}
@@ -62,7 +63,7 @@ func (w *workflowServer) PutEvent(putEvent Workflow_putEvent) error {
 	return fmt.Errorf("putEvent not configured")
 }
 
-func (w *workflowServer) AckJob(ackJob Workflow_ackJob) error {
+func (w *workflowServer) AckJob(ackJob workflow.Workflow_ackJob) error {
 	if w.ackJob != nil {
 		return w.ackJob(ackJob)
 	}
@@ -70,7 +71,7 @@ func (w *workflowServer) AckJob(ackJob Workflow_ackJob) error {
 	return fmt.Errorf("ackJob not configured")
 }
 
-func (w *workflowServer) GetJob(getJob Workflow_getJob) error {
+func (w *workflowServer) GetJob(getJob workflow.Workflow_getJob) error {
 	if w.getJob != nil {
 		return w.getJob(getJob)
 	}
@@ -78,7 +79,7 @@ func (w *workflowServer) GetJob(getJob Workflow_getJob) error {
 	return fmt.Errorf("getJob not configured")
 }
 
-func (w *workflowServer) GetLatestEvent(getLatestEvent Workflow_getLatestEvent) error {
+func (w *workflowServer) GetLatestEvent(getLatestEvent workflow.Workflow_getLatestEvent) error {
 	if w.getLatestEvent != nil {
 		return w.getLatestEvent(getLatestEvent)
 	}
@@ -86,7 +87,7 @@ func (w *workflowServer) GetLatestEvent(getLatestEvent Workflow_getLatestEvent) 
 	return fmt.Errorf("getLatestEvent not configured")
 }
 
-func (w *workflowServer) GetEvent(getEvent Workflow_getEvent) error {
+func (w *workflowServer) GetEvent(getEvent workflow.Workflow_getEvent) error {
 	if w.getEvent != nil {
 		return w.getEvent(getEvent)
 	}
@@ -108,7 +109,7 @@ func testServer(ws *workflowServer) (net.Listener, error) {
 			}
 
 			go func() {
-				wfsc := Workflow_ServerToClient(ws)
+				wfsc := workflow.Workflow_ServerToClient(ws)
 
 				connection := rpc.NewConn(
 					rpc.StreamTransport(conn),

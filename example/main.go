@@ -49,18 +49,18 @@ func exampleTransform() {
 	for {
 		ref, err := c.Consume()
 		if err != nil {
-			log.Fatalf("Could not consume message: %s\n", err)
+			log.Fatalf("Could not consume message: %s", err)
 		}
 
 		message, err := c.Get(ref)
 		if err != nil {
-			log.Fatalf("Could not get message: %s\n", err)
+			log.Fatalf("Could not get message: %s", err)
 		}
 
 		message.Content = worker.StringContent("test")
 
 		if err := c.Ack(ref, ravenworker.WithMessage(message)); err != nil {
-			log.Fatalf("Could not ack message: %s\n", err)
+			log.Fatalf("Could not ack message: %s", err)
 		}
 	}
 }
