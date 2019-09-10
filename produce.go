@@ -55,7 +55,11 @@ func (c *DefaultWorker) Produce(message Message) error {
 }
 
 func (c *DefaultWorker) produce(message Message) error {
-	_, err := c.w.PutEvent(context.Background(), func(params workflow.Workflow_putEvent_Params) error {
+	_, err := c.w.PutNewEvent(context.Background(), func(params workflow.Workflow_putNewEvent_Params) error {
+		if err := params.SetWorkerID(c.WorkerID.Bytes()); err != nil {
+			return err
+		}
+
 		if err := params.SetFlowID(c.FlowID.Bytes()); err != nil {
 			return err
 		}

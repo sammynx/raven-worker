@@ -13,15 +13,15 @@ import (
 type Event struct{ capnp.Struct }
 
 // Event_TypeID is the unique identifier for the type Event.
-const Event_TypeID = 0xc994c5d41e2fd511
+const Event_TypeID = 0xf57a5642b033d8c1
 
 func NewEvent(s *capnp.Segment) (Event, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 3})
 	return Event{st}, err
 }
 
 func NewRootEvent(s *capnp.Segment) (Event, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 3})
 	return Event{st}, err
 }
 
@@ -31,7 +31,7 @@ func ReadRootEvent(msg *capnp.Message) (Event, error) {
 }
 
 func (s Event) String() string {
-	str, _ := text.Marshal(0xc994c5d41e2fd511, s.Struct)
+	str, _ := text.Marshal(0xf57a5642b033d8c1, s.Struct)
 	return str
 }
 
@@ -82,12 +82,26 @@ func (s Event) NewMeta(n int32) (Event_Metadata_List, error) {
 	return l, err
 }
 
+func (s Event) Worker() ([]byte, error) {
+	p, err := s.Struct.Ptr(2)
+	return []byte(p.Data()), err
+}
+
+func (s Event) HasWorker() bool {
+	p, err := s.Struct.Ptr(2)
+	return p.IsValid() || err != nil
+}
+
+func (s Event) SetWorker(v []byte) error {
+	return s.Struct.SetData(2, v)
+}
+
 // Event_List is a list of Event.
 type Event_List struct{ capnp.List }
 
 // NewEvent creates a new list of Event.
 func NewEvent_List(s *capnp.Segment, sz int32) (Event_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 3}, sz)
 	return Event_List{l}, err
 }
 
@@ -96,7 +110,7 @@ func (s Event_List) At(i int) Event { return Event{s.List.Struct(i)} }
 func (s Event_List) Set(i int, v Event) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s Event_List) String() string {
-	str, _ := text.MarshalList(0xc994c5d41e2fd511, s.List)
+	str, _ := text.MarshalList(0xf57a5642b033d8c1, s.List)
 	return str
 }
 
@@ -111,7 +125,7 @@ func (p Event_Promise) Struct() (Event, error) {
 type Event_Metadata struct{ capnp.Struct }
 
 // Event_Metadata_TypeID is the unique identifier for the type Event_Metadata.
-const Event_Metadata_TypeID = 0xe7a29db357b0e94f
+const Event_Metadata_TypeID = 0xe9a0380ad629b742
 
 func NewEvent_Metadata(s *capnp.Segment) (Event_Metadata, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
@@ -129,7 +143,7 @@ func ReadRootEvent_Metadata(msg *capnp.Message) (Event_Metadata, error) {
 }
 
 func (s Event_Metadata) String() string {
-	str, _ := text.Marshal(0xe7a29db357b0e94f, s.Struct)
+	str, _ := text.Marshal(0xe9a0380ad629b742, s.Struct)
 	return str
 }
 
@@ -185,7 +199,7 @@ func (s Event_Metadata_List) At(i int) Event_Metadata { return Event_Metadata{s.
 func (s Event_Metadata_List) Set(i int, v Event_Metadata) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s Event_Metadata_List) String() string {
-	str, _ := text.MarshalList(0xe7a29db357b0e94f, s.List)
+	str, _ := text.MarshalList(0xe9a0380ad629b742, s.List)
 	return str
 }
 
@@ -200,7 +214,7 @@ func (p Event_Metadata_Promise) Struct() (Event_Metadata, error) {
 type Workflow struct{ Client capnp.Client }
 
 // Workflow_TypeID is the unique identifier for the type Workflow.
-const Workflow_TypeID = 0xf6c0150469fe7938
+const Workflow_TypeID = 0xa35d193330adceaf
 
 func (c Workflow) PutEvent(ctx context.Context, params func(Workflow_putEvent_Params) error, opts ...capnp.CallOption) Workflow_putEvent_Results_Promise {
 	if c.Client == nil {
@@ -209,7 +223,7 @@ func (c Workflow) PutEvent(ctx context.Context, params func(Workflow_putEvent_Pa
 	call := &capnp.Call{
 		Ctx: ctx,
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
+			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      0,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "putEvent",
@@ -217,10 +231,30 @@ func (c Workflow) PutEvent(ctx context.Context, params func(Workflow_putEvent_Pa
 		Options: capnp.NewCallOptions(opts),
 	}
 	if params != nil {
-		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
 		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_putEvent_Params{Struct: s}) }
 	}
 	return Workflow_putEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Workflow) PutNewEvent(ctx context.Context, params func(Workflow_putNewEvent_Params) error, opts ...capnp.CallOption) Workflow_putNewEvent_Results_Promise {
+	if c.Client == nil {
+		return Workflow_putNewEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      1,
+			InterfaceName: "job.capnp:Workflow",
+			MethodName:    "putNewEvent",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 3}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_putNewEvent_Params{Struct: s}) }
+	}
+	return Workflow_putNewEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
 }
 func (c Workflow) GetEvent(ctx context.Context, params func(Workflow_getEvent_Params) error, opts ...capnp.CallOption) Workflow_getEvent_Results_Promise {
 	if c.Client == nil {
@@ -229,8 +263,8 @@ func (c Workflow) GetEvent(ctx context.Context, params func(Workflow_getEvent_Pa
 	call := &capnp.Call{
 		Ctx: ctx,
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      1,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      2,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "getEvent",
 		},
@@ -242,25 +276,45 @@ func (c Workflow) GetEvent(ctx context.Context, params func(Workflow_getEvent_Pa
 	}
 	return Workflow_getEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
 }
-func (c Workflow) GetLatestEvent(ctx context.Context, params func(Workflow_getLatestEvent_Params) error, opts ...capnp.CallOption) Workflow_getLatestEvent_Results_Promise {
+func (c Workflow) GetEventAllVersions(ctx context.Context, params func(Workflow_getEventAllVersions_Params) error, opts ...capnp.CallOption) Workflow_getEventAllVersions_Results_Promise {
 	if c.Client == nil {
-		return Workflow_getLatestEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+		return Workflow_getEventAllVersions_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
 	}
 	call := &capnp.Call{
 		Ctx: ctx,
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      2,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      3,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getLatestEvent",
+			MethodName:    "getEventAllVersions",
 		},
 		Options: capnp.NewCallOptions(opts),
 	}
 	if params != nil {
 		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getLatestEvent_Params{Struct: s}) }
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getEventAllVersions_Params{Struct: s}) }
 	}
-	return Workflow_getLatestEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+	return Workflow_getEventAllVersions_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Workflow) GetLatestEventID(ctx context.Context, params func(Workflow_getLatestEventID_Params) error, opts ...capnp.CallOption) Workflow_getLatestEventID_Results_Promise {
+	if c.Client == nil {
+		return Workflow_getLatestEventID_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      4,
+			InterfaceName: "job.capnp:Workflow",
+			MethodName:    "getLatestEventID",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getLatestEventID_Params{Struct: s}) }
+	}
+	return Workflow_getLatestEventID_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
 }
 func (c Workflow) GetJob(ctx context.Context, params func(Workflow_getJob_Params) error, opts ...capnp.CallOption) Workflow_getJob_Results_Promise {
 	if c.Client == nil {
@@ -269,8 +323,8 @@ func (c Workflow) GetJob(ctx context.Context, params func(Workflow_getJob_Params
 	call := &capnp.Call{
 		Ctx: ctx,
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      3,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      5,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "getJob",
 		},
@@ -289,8 +343,8 @@ func (c Workflow) AckJob(ctx context.Context, params func(Workflow_ackJob_Params
 	call := &capnp.Call{
 		Ctx: ctx,
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      4,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      6,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "ackJob",
 		},
@@ -306,9 +360,13 @@ func (c Workflow) AckJob(ctx context.Context, params func(Workflow_ackJob_Params
 type Workflow_Server interface {
 	PutEvent(Workflow_putEvent) error
 
+	PutNewEvent(Workflow_putNewEvent) error
+
 	GetEvent(Workflow_getEvent) error
 
-	GetLatestEvent(Workflow_getLatestEvent) error
+	GetEventAllVersions(Workflow_getEventAllVersions) error
+
+	GetLatestEventID(Workflow_getLatestEventID) error
 
 	GetJob(Workflow_getJob) error
 
@@ -322,12 +380,12 @@ func Workflow_ServerToClient(s Workflow_Server) Workflow {
 
 func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 5)
+		methods = make([]server.Method, 0, 7)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
+			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      0,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "putEvent",
@@ -336,13 +394,27 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 			call := Workflow_putEvent{c, opts, Workflow_putEvent_Params{Struct: p}, Workflow_putEvent_Results{Struct: r}}
 			return s.PutEvent(call)
 		},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 0},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      1,
+			InterfaceName: "job.capnp:Workflow",
+			MethodName:    "putNewEvent",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Workflow_putNewEvent{c, opts, Workflow_putNewEvent_Params{Struct: p}, Workflow_putNewEvent_Results{Struct: r}}
+			return s.PutNewEvent(call)
+		},
 		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      1,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      2,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "getEvent",
 		},
@@ -355,22 +427,36 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      2,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      3,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getLatestEvent",
+			MethodName:    "getEventAllVersions",
 		},
 		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_getLatestEvent{c, opts, Workflow_getLatestEvent_Params{Struct: p}, Workflow_getLatestEvent_Results{Struct: r}}
-			return s.GetLatestEvent(call)
+			call := Workflow_getEventAllVersions{c, opts, Workflow_getEventAllVersions_Params{Struct: p}, Workflow_getEventAllVersions_Results{Struct: r}}
+			return s.GetEventAllVersions(call)
 		},
 		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      3,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      4,
+			InterfaceName: "job.capnp:Workflow",
+			MethodName:    "getLatestEventID",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Workflow_getLatestEventID{c, opts, Workflow_getLatestEventID_Params{Struct: p}, Workflow_getLatestEventID_Results{Struct: r}}
+			return s.GetLatestEventID(call)
+		},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      5,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "getJob",
 		},
@@ -383,8 +469,8 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xf6c0150469fe7938,
-			MethodID:      4,
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      6,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "ackJob",
 		},
@@ -406,6 +492,14 @@ type Workflow_putEvent struct {
 	Results Workflow_putEvent_Results
 }
 
+// Workflow_putNewEvent holds the arguments for a server call to Workflow.putNewEvent.
+type Workflow_putNewEvent struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Workflow_putNewEvent_Params
+	Results Workflow_putNewEvent_Results
+}
+
 // Workflow_getEvent holds the arguments for a server call to Workflow.getEvent.
 type Workflow_getEvent struct {
 	Ctx     context.Context
@@ -414,12 +508,20 @@ type Workflow_getEvent struct {
 	Results Workflow_getEvent_Results
 }
 
-// Workflow_getLatestEvent holds the arguments for a server call to Workflow.getLatestEvent.
-type Workflow_getLatestEvent struct {
+// Workflow_getEventAllVersions holds the arguments for a server call to Workflow.getEventAllVersions.
+type Workflow_getEventAllVersions struct {
 	Ctx     context.Context
 	Options capnp.CallOptions
-	Params  Workflow_getLatestEvent_Params
-	Results Workflow_getLatestEvent_Results
+	Params  Workflow_getEventAllVersions_Params
+	Results Workflow_getEventAllVersions_Results
+}
+
+// Workflow_getLatestEventID holds the arguments for a server call to Workflow.getLatestEventID.
+type Workflow_getLatestEventID struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Workflow_getLatestEventID_Params
+	Results Workflow_getLatestEventID_Results
 }
 
 // Workflow_getJob holds the arguments for a server call to Workflow.getJob.
@@ -441,15 +543,15 @@ type Workflow_ackJob struct {
 type Workflow_putEvent_Params struct{ capnp.Struct }
 
 // Workflow_putEvent_Params_TypeID is the unique identifier for the type Workflow_putEvent_Params.
-const Workflow_putEvent_Params_TypeID = 0x90df0352433557e1
+const Workflow_putEvent_Params_TypeID = 0xfb7429c9d23d519b
 
 func NewWorkflow_putEvent_Params(s *capnp.Segment) (Workflow_putEvent_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
 	return Workflow_putEvent_Params{st}, err
 }
 
 func NewRootWorkflow_putEvent_Params(s *capnp.Segment) (Workflow_putEvent_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
 	return Workflow_putEvent_Params{st}, err
 }
 
@@ -459,7 +561,7 @@ func ReadRootWorkflow_putEvent_Params(msg *capnp.Message) (Workflow_putEvent_Par
 }
 
 func (s Workflow_putEvent_Params) String() string {
-	str, _ := text.Marshal(0x90df0352433557e1, s.Struct)
+	str, _ := text.Marshal(0xfb7429c9d23d519b, s.Struct)
 	return str
 }
 
@@ -477,18 +579,46 @@ func (s Workflow_putEvent_Params) SetFlowID(v []byte) error {
 	return s.Struct.SetData(0, v)
 }
 
-func (s Workflow_putEvent_Params) Event() (Event, error) {
+func (s Workflow_putEvent_Params) WorkerID() ([]byte, error) {
 	p, err := s.Struct.Ptr(1)
-	return Event{Struct: p.Struct()}, err
+	return []byte(p.Data()), err
 }
 
-func (s Workflow_putEvent_Params) HasEvent() bool {
+func (s Workflow_putEvent_Params) HasWorkerID() bool {
 	p, err := s.Struct.Ptr(1)
 	return p.IsValid() || err != nil
 }
 
+func (s Workflow_putEvent_Params) SetWorkerID(v []byte) error {
+	return s.Struct.SetData(1, v)
+}
+
+func (s Workflow_putEvent_Params) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(2)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_putEvent_Params) HasEventID() bool {
+	p, err := s.Struct.Ptr(2)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_putEvent_Params) SetEventID(v []byte) error {
+	return s.Struct.SetData(2, v)
+}
+
+func (s Workflow_putEvent_Params) Event() (Event, error) {
+	p, err := s.Struct.Ptr(3)
+	return Event{Struct: p.Struct()}, err
+}
+
+func (s Workflow_putEvent_Params) HasEvent() bool {
+	p, err := s.Struct.Ptr(3)
+	return p.IsValid() || err != nil
+}
+
 func (s Workflow_putEvent_Params) SetEvent(v Event) error {
-	return s.Struct.SetPtr(1, v.Struct.ToPtr())
+	return s.Struct.SetPtr(3, v.Struct.ToPtr())
 }
 
 // NewEvent sets the event field to a newly
@@ -498,7 +628,7 @@ func (s Workflow_putEvent_Params) NewEvent() (Event, error) {
 	if err != nil {
 		return Event{}, err
 	}
-	err = s.Struct.SetPtr(1, ss.Struct.ToPtr())
+	err = s.Struct.SetPtr(3, ss.Struct.ToPtr())
 	return ss, err
 }
 
@@ -507,7 +637,7 @@ type Workflow_putEvent_Params_List struct{ capnp.List }
 
 // NewWorkflow_putEvent_Params creates a new list of Workflow_putEvent_Params.
 func NewWorkflow_putEvent_Params_List(s *capnp.Segment, sz int32) (Workflow_putEvent_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
 	return Workflow_putEvent_Params_List{l}, err
 }
 
@@ -520,7 +650,7 @@ func (s Workflow_putEvent_Params_List) Set(i int, v Workflow_putEvent_Params) er
 }
 
 func (s Workflow_putEvent_Params_List) String() string {
-	str, _ := text.MarshalList(0x90df0352433557e1, s.List)
+	str, _ := text.MarshalList(0xfb7429c9d23d519b, s.List)
 	return str
 }
 
@@ -533,21 +663,21 @@ func (p Workflow_putEvent_Params_Promise) Struct() (Workflow_putEvent_Params, er
 }
 
 func (p Workflow_putEvent_Params_Promise) Event() Event_Promise {
-	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(1)}
+	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(3)}
 }
 
 type Workflow_putEvent_Results struct{ capnp.Struct }
 
 // Workflow_putEvent_Results_TypeID is the unique identifier for the type Workflow_putEvent_Results.
-const Workflow_putEvent_Results_TypeID = 0xc1211c5b43eb5981
+const Workflow_putEvent_Results_TypeID = 0x8bcafe9abfa2fdc5
 
 func NewWorkflow_putEvent_Results(s *capnp.Segment) (Workflow_putEvent_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
 	return Workflow_putEvent_Results{st}, err
 }
 
 func NewRootWorkflow_putEvent_Results(s *capnp.Segment) (Workflow_putEvent_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
 	return Workflow_putEvent_Results{st}, err
 }
 
@@ -557,22 +687,8 @@ func ReadRootWorkflow_putEvent_Results(msg *capnp.Message) (Workflow_putEvent_Re
 }
 
 func (s Workflow_putEvent_Results) String() string {
-	str, _ := text.Marshal(0xc1211c5b43eb5981, s.Struct)
+	str, _ := text.Marshal(0x8bcafe9abfa2fdc5, s.Struct)
 	return str
-}
-
-func (s Workflow_putEvent_Results) EventID() ([]byte, error) {
-	p, err := s.Struct.Ptr(0)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_putEvent_Results) HasEventID() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_putEvent_Results) SetEventID(v []byte) error {
-	return s.Struct.SetData(0, v)
 }
 
 // Workflow_putEvent_Results_List is a list of Workflow_putEvent_Results.
@@ -580,7 +696,7 @@ type Workflow_putEvent_Results_List struct{ capnp.List }
 
 // NewWorkflow_putEvent_Results creates a new list of Workflow_putEvent_Results.
 func NewWorkflow_putEvent_Results_List(s *capnp.Segment, sz int32) (Workflow_putEvent_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
 	return Workflow_putEvent_Results_List{l}, err
 }
 
@@ -593,7 +709,7 @@ func (s Workflow_putEvent_Results_List) Set(i int, v Workflow_putEvent_Results) 
 }
 
 func (s Workflow_putEvent_Results_List) String() string {
-	str, _ := text.MarshalList(0xc1211c5b43eb5981, s.List)
+	str, _ := text.MarshalList(0x8bcafe9abfa2fdc5, s.List)
 	return str
 }
 
@@ -605,10 +721,191 @@ func (p Workflow_putEvent_Results_Promise) Struct() (Workflow_putEvent_Results, 
 	return Workflow_putEvent_Results{s}, err
 }
 
+type Workflow_putNewEvent_Params struct{ capnp.Struct }
+
+// Workflow_putNewEvent_Params_TypeID is the unique identifier for the type Workflow_putNewEvent_Params.
+const Workflow_putNewEvent_Params_TypeID = 0x8c160cee2c28c32f
+
+func NewWorkflow_putNewEvent_Params(s *capnp.Segment) (Workflow_putNewEvent_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
+	return Workflow_putNewEvent_Params{st}, err
+}
+
+func NewRootWorkflow_putNewEvent_Params(s *capnp.Segment) (Workflow_putNewEvent_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
+	return Workflow_putNewEvent_Params{st}, err
+}
+
+func ReadRootWorkflow_putNewEvent_Params(msg *capnp.Message) (Workflow_putNewEvent_Params, error) {
+	root, err := msg.RootPtr()
+	return Workflow_putNewEvent_Params{root.Struct()}, err
+}
+
+func (s Workflow_putNewEvent_Params) String() string {
+	str, _ := text.Marshal(0x8c160cee2c28c32f, s.Struct)
+	return str
+}
+
+func (s Workflow_putNewEvent_Params) FlowID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_putNewEvent_Params) HasFlowID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_putNewEvent_Params) SetFlowID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+func (s Workflow_putNewEvent_Params) WorkerID() ([]byte, error) {
+	p, err := s.Struct.Ptr(1)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_putNewEvent_Params) HasWorkerID() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_putNewEvent_Params) SetWorkerID(v []byte) error {
+	return s.Struct.SetData(1, v)
+}
+
+func (s Workflow_putNewEvent_Params) Event() (Event, error) {
+	p, err := s.Struct.Ptr(2)
+	return Event{Struct: p.Struct()}, err
+}
+
+func (s Workflow_putNewEvent_Params) HasEvent() bool {
+	p, err := s.Struct.Ptr(2)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_putNewEvent_Params) SetEvent(v Event) error {
+	return s.Struct.SetPtr(2, v.Struct.ToPtr())
+}
+
+// NewEvent sets the event field to a newly
+// allocated Event struct, preferring placement in s's segment.
+func (s Workflow_putNewEvent_Params) NewEvent() (Event, error) {
+	ss, err := NewEvent(s.Struct.Segment())
+	if err != nil {
+		return Event{}, err
+	}
+	err = s.Struct.SetPtr(2, ss.Struct.ToPtr())
+	return ss, err
+}
+
+// Workflow_putNewEvent_Params_List is a list of Workflow_putNewEvent_Params.
+type Workflow_putNewEvent_Params_List struct{ capnp.List }
+
+// NewWorkflow_putNewEvent_Params creates a new list of Workflow_putNewEvent_Params.
+func NewWorkflow_putNewEvent_Params_List(s *capnp.Segment, sz int32) (Workflow_putNewEvent_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
+	return Workflow_putNewEvent_Params_List{l}, err
+}
+
+func (s Workflow_putNewEvent_Params_List) At(i int) Workflow_putNewEvent_Params {
+	return Workflow_putNewEvent_Params{s.List.Struct(i)}
+}
+
+func (s Workflow_putNewEvent_Params_List) Set(i int, v Workflow_putNewEvent_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_putNewEvent_Params_List) String() string {
+	str, _ := text.MarshalList(0x8c160cee2c28c32f, s.List)
+	return str
+}
+
+// Workflow_putNewEvent_Params_Promise is a wrapper for a Workflow_putNewEvent_Params promised by a client call.
+type Workflow_putNewEvent_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_putNewEvent_Params_Promise) Struct() (Workflow_putNewEvent_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_putNewEvent_Params{s}, err
+}
+
+func (p Workflow_putNewEvent_Params_Promise) Event() Event_Promise {
+	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(2)}
+}
+
+type Workflow_putNewEvent_Results struct{ capnp.Struct }
+
+// Workflow_putNewEvent_Results_TypeID is the unique identifier for the type Workflow_putNewEvent_Results.
+const Workflow_putNewEvent_Results_TypeID = 0xa6863ad17f79d808
+
+func NewWorkflow_putNewEvent_Results(s *capnp.Segment) (Workflow_putNewEvent_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_putNewEvent_Results{st}, err
+}
+
+func NewRootWorkflow_putNewEvent_Results(s *capnp.Segment) (Workflow_putNewEvent_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_putNewEvent_Results{st}, err
+}
+
+func ReadRootWorkflow_putNewEvent_Results(msg *capnp.Message) (Workflow_putNewEvent_Results, error) {
+	root, err := msg.RootPtr()
+	return Workflow_putNewEvent_Results{root.Struct()}, err
+}
+
+func (s Workflow_putNewEvent_Results) String() string {
+	str, _ := text.Marshal(0xa6863ad17f79d808, s.Struct)
+	return str
+}
+
+func (s Workflow_putNewEvent_Results) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_putNewEvent_Results) HasEventID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_putNewEvent_Results) SetEventID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+// Workflow_putNewEvent_Results_List is a list of Workflow_putNewEvent_Results.
+type Workflow_putNewEvent_Results_List struct{ capnp.List }
+
+// NewWorkflow_putNewEvent_Results creates a new list of Workflow_putNewEvent_Results.
+func NewWorkflow_putNewEvent_Results_List(s *capnp.Segment, sz int32) (Workflow_putNewEvent_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_putNewEvent_Results_List{l}, err
+}
+
+func (s Workflow_putNewEvent_Results_List) At(i int) Workflow_putNewEvent_Results {
+	return Workflow_putNewEvent_Results{s.List.Struct(i)}
+}
+
+func (s Workflow_putNewEvent_Results_List) Set(i int, v Workflow_putNewEvent_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_putNewEvent_Results_List) String() string {
+	str, _ := text.MarshalList(0xa6863ad17f79d808, s.List)
+	return str
+}
+
+// Workflow_putNewEvent_Results_Promise is a wrapper for a Workflow_putNewEvent_Results promised by a client call.
+type Workflow_putNewEvent_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_putNewEvent_Results_Promise) Struct() (Workflow_putNewEvent_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_putNewEvent_Results{s}, err
+}
+
 type Workflow_getEvent_Params struct{ capnp.Struct }
 
 // Workflow_getEvent_Params_TypeID is the unique identifier for the type Workflow_getEvent_Params.
-const Workflow_getEvent_Params_TypeID = 0xbf2d9c9f0bab4b71
+const Workflow_getEvent_Params_TypeID = 0xcc590b8e644c6381
 
 func NewWorkflow_getEvent_Params(s *capnp.Segment) (Workflow_getEvent_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -626,7 +923,7 @@ func ReadRootWorkflow_getEvent_Params(msg *capnp.Message) (Workflow_getEvent_Par
 }
 
 func (s Workflow_getEvent_Params) String() string {
-	str, _ := text.Marshal(0xbf2d9c9f0bab4b71, s.Struct)
+	str, _ := text.Marshal(0xcc590b8e644c6381, s.Struct)
 	return str
 }
 
@@ -662,7 +959,7 @@ func (s Workflow_getEvent_Params_List) Set(i int, v Workflow_getEvent_Params) er
 }
 
 func (s Workflow_getEvent_Params_List) String() string {
-	str, _ := text.MarshalList(0xbf2d9c9f0bab4b71, s.List)
+	str, _ := text.MarshalList(0xcc590b8e644c6381, s.List)
 	return str
 }
 
@@ -677,7 +974,7 @@ func (p Workflow_getEvent_Params_Promise) Struct() (Workflow_getEvent_Params, er
 type Workflow_getEvent_Results struct{ capnp.Struct }
 
 // Workflow_getEvent_Results_TypeID is the unique identifier for the type Workflow_getEvent_Results.
-const Workflow_getEvent_Results_TypeID = 0xd00cf1c4fa775caf
+const Workflow_getEvent_Results_TypeID = 0xc6682ec0740925e5
 
 func NewWorkflow_getEvent_Results(s *capnp.Segment) (Workflow_getEvent_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -695,7 +992,7 @@ func ReadRootWorkflow_getEvent_Results(msg *capnp.Message) (Workflow_getEvent_Re
 }
 
 func (s Workflow_getEvent_Results) String() string {
-	str, _ := text.Marshal(0xd00cf1c4fa775caf, s.Struct)
+	str, _ := text.Marshal(0xc6682ec0740925e5, s.Struct)
 	return str
 }
 
@@ -742,7 +1039,7 @@ func (s Workflow_getEvent_Results_List) Set(i int, v Workflow_getEvent_Results) 
 }
 
 func (s Workflow_getEvent_Results_List) String() string {
-	str, _ := text.MarshalList(0xd00cf1c4fa775caf, s.List)
+	str, _ := text.MarshalList(0xc6682ec0740925e5, s.List)
 	return str
 }
 
@@ -758,163 +1055,297 @@ func (p Workflow_getEvent_Results_Promise) Event() Event_Promise {
 	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
 }
 
-type Workflow_getLatestEvent_Params struct{ capnp.Struct }
+type Workflow_getEventAllVersions_Params struct{ capnp.Struct }
 
-// Workflow_getLatestEvent_Params_TypeID is the unique identifier for the type Workflow_getLatestEvent_Params.
-const Workflow_getLatestEvent_Params_TypeID = 0xd6d337f363ea4871
+// Workflow_getEventAllVersions_Params_TypeID is the unique identifier for the type Workflow_getEventAllVersions_Params.
+const Workflow_getEventAllVersions_Params_TypeID = 0x814b25c6a90ab3fd
 
-func NewWorkflow_getLatestEvent_Params(s *capnp.Segment) (Workflow_getLatestEvent_Params, error) {
+func NewWorkflow_getEventAllVersions_Params(s *capnp.Segment) (Workflow_getEventAllVersions_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getLatestEvent_Params{st}, err
+	return Workflow_getEventAllVersions_Params{st}, err
 }
 
-func NewRootWorkflow_getLatestEvent_Params(s *capnp.Segment) (Workflow_getLatestEvent_Params, error) {
+func NewRootWorkflow_getEventAllVersions_Params(s *capnp.Segment) (Workflow_getEventAllVersions_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getLatestEvent_Params{st}, err
+	return Workflow_getEventAllVersions_Params{st}, err
 }
 
-func ReadRootWorkflow_getLatestEvent_Params(msg *capnp.Message) (Workflow_getLatestEvent_Params, error) {
+func ReadRootWorkflow_getEventAllVersions_Params(msg *capnp.Message) (Workflow_getEventAllVersions_Params, error) {
 	root, err := msg.RootPtr()
-	return Workflow_getLatestEvent_Params{root.Struct()}, err
+	return Workflow_getEventAllVersions_Params{root.Struct()}, err
 }
 
-func (s Workflow_getLatestEvent_Params) String() string {
-	str, _ := text.Marshal(0xd6d337f363ea4871, s.Struct)
+func (s Workflow_getEventAllVersions_Params) String() string {
+	str, _ := text.Marshal(0x814b25c6a90ab3fd, s.Struct)
 	return str
 }
 
-func (s Workflow_getLatestEvent_Params) FlowID() ([]byte, error) {
+func (s Workflow_getEventAllVersions_Params) EventID() ([]byte, error) {
 	p, err := s.Struct.Ptr(0)
 	return []byte(p.Data()), err
 }
 
-func (s Workflow_getLatestEvent_Params) HasFlowID() bool {
+func (s Workflow_getEventAllVersions_Params) HasEventID() bool {
 	p, err := s.Struct.Ptr(0)
 	return p.IsValid() || err != nil
 }
 
-func (s Workflow_getLatestEvent_Params) SetFlowID(v []byte) error {
+func (s Workflow_getEventAllVersions_Params) SetEventID(v []byte) error {
 	return s.Struct.SetData(0, v)
 }
 
-// Workflow_getLatestEvent_Params_List is a list of Workflow_getLatestEvent_Params.
-type Workflow_getLatestEvent_Params_List struct{ capnp.List }
+// Workflow_getEventAllVersions_Params_List is a list of Workflow_getEventAllVersions_Params.
+type Workflow_getEventAllVersions_Params_List struct{ capnp.List }
 
-// NewWorkflow_getLatestEvent_Params creates a new list of Workflow_getLatestEvent_Params.
-func NewWorkflow_getLatestEvent_Params_List(s *capnp.Segment, sz int32) (Workflow_getLatestEvent_Params_List, error) {
+// NewWorkflow_getEventAllVersions_Params creates a new list of Workflow_getEventAllVersions_Params.
+func NewWorkflow_getEventAllVersions_Params_List(s *capnp.Segment, sz int32) (Workflow_getEventAllVersions_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return Workflow_getLatestEvent_Params_List{l}, err
+	return Workflow_getEventAllVersions_Params_List{l}, err
 }
 
-func (s Workflow_getLatestEvent_Params_List) At(i int) Workflow_getLatestEvent_Params {
-	return Workflow_getLatestEvent_Params{s.List.Struct(i)}
+func (s Workflow_getEventAllVersions_Params_List) At(i int) Workflow_getEventAllVersions_Params {
+	return Workflow_getEventAllVersions_Params{s.List.Struct(i)}
 }
 
-func (s Workflow_getLatestEvent_Params_List) Set(i int, v Workflow_getLatestEvent_Params) error {
+func (s Workflow_getEventAllVersions_Params_List) Set(i int, v Workflow_getEventAllVersions_Params) error {
 	return s.List.SetStruct(i, v.Struct)
 }
 
-func (s Workflow_getLatestEvent_Params_List) String() string {
-	str, _ := text.MarshalList(0xd6d337f363ea4871, s.List)
+func (s Workflow_getEventAllVersions_Params_List) String() string {
+	str, _ := text.MarshalList(0x814b25c6a90ab3fd, s.List)
 	return str
 }
 
-// Workflow_getLatestEvent_Params_Promise is a wrapper for a Workflow_getLatestEvent_Params promised by a client call.
-type Workflow_getLatestEvent_Params_Promise struct{ *capnp.Pipeline }
+// Workflow_getEventAllVersions_Params_Promise is a wrapper for a Workflow_getEventAllVersions_Params promised by a client call.
+type Workflow_getEventAllVersions_Params_Promise struct{ *capnp.Pipeline }
 
-func (p Workflow_getLatestEvent_Params_Promise) Struct() (Workflow_getLatestEvent_Params, error) {
+func (p Workflow_getEventAllVersions_Params_Promise) Struct() (Workflow_getEventAllVersions_Params, error) {
 	s, err := p.Pipeline.Struct()
-	return Workflow_getLatestEvent_Params{s}, err
+	return Workflow_getEventAllVersions_Params{s}, err
 }
 
-type Workflow_getLatestEvent_Results struct{ capnp.Struct }
+type Workflow_getEventAllVersions_Results struct{ capnp.Struct }
 
-// Workflow_getLatestEvent_Results_TypeID is the unique identifier for the type Workflow_getLatestEvent_Results.
-const Workflow_getLatestEvent_Results_TypeID = 0xf6424f4c92cc064f
+// Workflow_getEventAllVersions_Results_TypeID is the unique identifier for the type Workflow_getEventAllVersions_Results.
+const Workflow_getEventAllVersions_Results_TypeID = 0x90eb69d2aa988bfb
 
-func NewWorkflow_getLatestEvent_Results(s *capnp.Segment) (Workflow_getLatestEvent_Results, error) {
+func NewWorkflow_getEventAllVersions_Results(s *capnp.Segment) (Workflow_getEventAllVersions_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getLatestEvent_Results{st}, err
+	return Workflow_getEventAllVersions_Results{st}, err
 }
 
-func NewRootWorkflow_getLatestEvent_Results(s *capnp.Segment) (Workflow_getLatestEvent_Results, error) {
+func NewRootWorkflow_getEventAllVersions_Results(s *capnp.Segment) (Workflow_getEventAllVersions_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getLatestEvent_Results{st}, err
+	return Workflow_getEventAllVersions_Results{st}, err
 }
 
-func ReadRootWorkflow_getLatestEvent_Results(msg *capnp.Message) (Workflow_getLatestEvent_Results, error) {
+func ReadRootWorkflow_getEventAllVersions_Results(msg *capnp.Message) (Workflow_getEventAllVersions_Results, error) {
 	root, err := msg.RootPtr()
-	return Workflow_getLatestEvent_Results{root.Struct()}, err
+	return Workflow_getEventAllVersions_Results{root.Struct()}, err
 }
 
-func (s Workflow_getLatestEvent_Results) String() string {
-	str, _ := text.Marshal(0xf6424f4c92cc064f, s.Struct)
+func (s Workflow_getEventAllVersions_Results) String() string {
+	str, _ := text.Marshal(0x90eb69d2aa988bfb, s.Struct)
 	return str
 }
 
-func (s Workflow_getLatestEvent_Results) Event() (Event, error) {
+func (s Workflow_getEventAllVersions_Results) Events() (Event_List, error) {
 	p, err := s.Struct.Ptr(0)
-	return Event{Struct: p.Struct()}, err
+	return Event_List{List: p.List()}, err
 }
 
-func (s Workflow_getLatestEvent_Results) HasEvent() bool {
+func (s Workflow_getEventAllVersions_Results) HasEvents() bool {
 	p, err := s.Struct.Ptr(0)
 	return p.IsValid() || err != nil
 }
 
-func (s Workflow_getLatestEvent_Results) SetEvent(v Event) error {
-	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+func (s Workflow_getEventAllVersions_Results) SetEvents(v Event_List) error {
+	return s.Struct.SetPtr(0, v.List.ToPtr())
 }
 
-// NewEvent sets the event field to a newly
-// allocated Event struct, preferring placement in s's segment.
-func (s Workflow_getLatestEvent_Results) NewEvent() (Event, error) {
-	ss, err := NewEvent(s.Struct.Segment())
+// NewEvents sets the events field to a newly
+// allocated Event_List, preferring placement in s's segment.
+func (s Workflow_getEventAllVersions_Results) NewEvents(n int32) (Event_List, error) {
+	l, err := NewEvent_List(s.Struct.Segment(), n)
 	if err != nil {
-		return Event{}, err
+		return Event_List{}, err
 	}
-	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
-	return ss, err
+	err = s.Struct.SetPtr(0, l.List.ToPtr())
+	return l, err
 }
 
-// Workflow_getLatestEvent_Results_List is a list of Workflow_getLatestEvent_Results.
-type Workflow_getLatestEvent_Results_List struct{ capnp.List }
+// Workflow_getEventAllVersions_Results_List is a list of Workflow_getEventAllVersions_Results.
+type Workflow_getEventAllVersions_Results_List struct{ capnp.List }
 
-// NewWorkflow_getLatestEvent_Results creates a new list of Workflow_getLatestEvent_Results.
-func NewWorkflow_getLatestEvent_Results_List(s *capnp.Segment, sz int32) (Workflow_getLatestEvent_Results_List, error) {
+// NewWorkflow_getEventAllVersions_Results creates a new list of Workflow_getEventAllVersions_Results.
+func NewWorkflow_getEventAllVersions_Results_List(s *capnp.Segment, sz int32) (Workflow_getEventAllVersions_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return Workflow_getLatestEvent_Results_List{l}, err
+	return Workflow_getEventAllVersions_Results_List{l}, err
 }
 
-func (s Workflow_getLatestEvent_Results_List) At(i int) Workflow_getLatestEvent_Results {
-	return Workflow_getLatestEvent_Results{s.List.Struct(i)}
+func (s Workflow_getEventAllVersions_Results_List) At(i int) Workflow_getEventAllVersions_Results {
+	return Workflow_getEventAllVersions_Results{s.List.Struct(i)}
 }
 
-func (s Workflow_getLatestEvent_Results_List) Set(i int, v Workflow_getLatestEvent_Results) error {
+func (s Workflow_getEventAllVersions_Results_List) Set(i int, v Workflow_getEventAllVersions_Results) error {
 	return s.List.SetStruct(i, v.Struct)
 }
 
-func (s Workflow_getLatestEvent_Results_List) String() string {
-	str, _ := text.MarshalList(0xf6424f4c92cc064f, s.List)
+func (s Workflow_getEventAllVersions_Results_List) String() string {
+	str, _ := text.MarshalList(0x90eb69d2aa988bfb, s.List)
 	return str
 }
 
-// Workflow_getLatestEvent_Results_Promise is a wrapper for a Workflow_getLatestEvent_Results promised by a client call.
-type Workflow_getLatestEvent_Results_Promise struct{ *capnp.Pipeline }
+// Workflow_getEventAllVersions_Results_Promise is a wrapper for a Workflow_getEventAllVersions_Results promised by a client call.
+type Workflow_getEventAllVersions_Results_Promise struct{ *capnp.Pipeline }
 
-func (p Workflow_getLatestEvent_Results_Promise) Struct() (Workflow_getLatestEvent_Results, error) {
+func (p Workflow_getEventAllVersions_Results_Promise) Struct() (Workflow_getEventAllVersions_Results, error) {
 	s, err := p.Pipeline.Struct()
-	return Workflow_getLatestEvent_Results{s}, err
+	return Workflow_getEventAllVersions_Results{s}, err
 }
 
-func (p Workflow_getLatestEvent_Results_Promise) Event() Event_Promise {
-	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+type Workflow_getLatestEventID_Params struct{ capnp.Struct }
+
+// Workflow_getLatestEventID_Params_TypeID is the unique identifier for the type Workflow_getLatestEventID_Params.
+const Workflow_getLatestEventID_Params_TypeID = 0x8dde89bb27860684
+
+func NewWorkflow_getLatestEventID_Params(s *capnp.Segment) (Workflow_getLatestEventID_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getLatestEventID_Params{st}, err
+}
+
+func NewRootWorkflow_getLatestEventID_Params(s *capnp.Segment) (Workflow_getLatestEventID_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getLatestEventID_Params{st}, err
+}
+
+func ReadRootWorkflow_getLatestEventID_Params(msg *capnp.Message) (Workflow_getLatestEventID_Params, error) {
+	root, err := msg.RootPtr()
+	return Workflow_getLatestEventID_Params{root.Struct()}, err
+}
+
+func (s Workflow_getLatestEventID_Params) String() string {
+	str, _ := text.Marshal(0x8dde89bb27860684, s.Struct)
+	return str
+}
+
+func (s Workflow_getLatestEventID_Params) FlowID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_getLatestEventID_Params) HasFlowID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_getLatestEventID_Params) SetFlowID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+// Workflow_getLatestEventID_Params_List is a list of Workflow_getLatestEventID_Params.
+type Workflow_getLatestEventID_Params_List struct{ capnp.List }
+
+// NewWorkflow_getLatestEventID_Params creates a new list of Workflow_getLatestEventID_Params.
+func NewWorkflow_getLatestEventID_Params_List(s *capnp.Segment, sz int32) (Workflow_getLatestEventID_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_getLatestEventID_Params_List{l}, err
+}
+
+func (s Workflow_getLatestEventID_Params_List) At(i int) Workflow_getLatestEventID_Params {
+	return Workflow_getLatestEventID_Params{s.List.Struct(i)}
+}
+
+func (s Workflow_getLatestEventID_Params_List) Set(i int, v Workflow_getLatestEventID_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_getLatestEventID_Params_List) String() string {
+	str, _ := text.MarshalList(0x8dde89bb27860684, s.List)
+	return str
+}
+
+// Workflow_getLatestEventID_Params_Promise is a wrapper for a Workflow_getLatestEventID_Params promised by a client call.
+type Workflow_getLatestEventID_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_getLatestEventID_Params_Promise) Struct() (Workflow_getLatestEventID_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_getLatestEventID_Params{s}, err
+}
+
+type Workflow_getLatestEventID_Results struct{ capnp.Struct }
+
+// Workflow_getLatestEventID_Results_TypeID is the unique identifier for the type Workflow_getLatestEventID_Results.
+const Workflow_getLatestEventID_Results_TypeID = 0xb222156f3117892c
+
+func NewWorkflow_getLatestEventID_Results(s *capnp.Segment) (Workflow_getLatestEventID_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getLatestEventID_Results{st}, err
+}
+
+func NewRootWorkflow_getLatestEventID_Results(s *capnp.Segment) (Workflow_getLatestEventID_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getLatestEventID_Results{st}, err
+}
+
+func ReadRootWorkflow_getLatestEventID_Results(msg *capnp.Message) (Workflow_getLatestEventID_Results, error) {
+	root, err := msg.RootPtr()
+	return Workflow_getLatestEventID_Results{root.Struct()}, err
+}
+
+func (s Workflow_getLatestEventID_Results) String() string {
+	str, _ := text.Marshal(0xb222156f3117892c, s.Struct)
+	return str
+}
+
+func (s Workflow_getLatestEventID_Results) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_getLatestEventID_Results) HasEventID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_getLatestEventID_Results) SetEventID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+// Workflow_getLatestEventID_Results_List is a list of Workflow_getLatestEventID_Results.
+type Workflow_getLatestEventID_Results_List struct{ capnp.List }
+
+// NewWorkflow_getLatestEventID_Results creates a new list of Workflow_getLatestEventID_Results.
+func NewWorkflow_getLatestEventID_Results_List(s *capnp.Segment, sz int32) (Workflow_getLatestEventID_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_getLatestEventID_Results_List{l}, err
+}
+
+func (s Workflow_getLatestEventID_Results_List) At(i int) Workflow_getLatestEventID_Results {
+	return Workflow_getLatestEventID_Results{s.List.Struct(i)}
+}
+
+func (s Workflow_getLatestEventID_Results_List) Set(i int, v Workflow_getLatestEventID_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_getLatestEventID_Results_List) String() string {
+	str, _ := text.MarshalList(0xb222156f3117892c, s.List)
+	return str
+}
+
+// Workflow_getLatestEventID_Results_Promise is a wrapper for a Workflow_getLatestEventID_Results promised by a client call.
+type Workflow_getLatestEventID_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_getLatestEventID_Results_Promise) Struct() (Workflow_getLatestEventID_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_getLatestEventID_Results{s}, err
 }
 
 type Workflow_getJob_Params struct{ capnp.Struct }
 
 // Workflow_getJob_Params_TypeID is the unique identifier for the type Workflow_getJob_Params.
-const Workflow_getJob_Params_TypeID = 0xc8538212213bc1ef
+const Workflow_getJob_Params_TypeID = 0x9eb9067e5f36a40d
 
 func NewWorkflow_getJob_Params(s *capnp.Segment) (Workflow_getJob_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -932,7 +1363,7 @@ func ReadRootWorkflow_getJob_Params(msg *capnp.Message) (Workflow_getJob_Params,
 }
 
 func (s Workflow_getJob_Params) String() string {
-	str, _ := text.Marshal(0xc8538212213bc1ef, s.Struct)
+	str, _ := text.Marshal(0x9eb9067e5f36a40d, s.Struct)
 	return str
 }
 
@@ -968,7 +1399,7 @@ func (s Workflow_getJob_Params_List) Set(i int, v Workflow_getJob_Params) error 
 }
 
 func (s Workflow_getJob_Params_List) String() string {
-	str, _ := text.MarshalList(0xc8538212213bc1ef, s.List)
+	str, _ := text.MarshalList(0x9eb9067e5f36a40d, s.List)
 	return str
 }
 
@@ -983,7 +1414,7 @@ func (p Workflow_getJob_Params_Promise) Struct() (Workflow_getJob_Params, error)
 type Workflow_getJob_Results struct{ capnp.Struct }
 
 // Workflow_getJob_Results_TypeID is the unique identifier for the type Workflow_getJob_Results.
-const Workflow_getJob_Results_TypeID = 0xde7f463f079f6364
+const Workflow_getJob_Results_TypeID = 0xbce9dc3869c5a017
 
 func NewWorkflow_getJob_Results(s *capnp.Segment) (Workflow_getJob_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
@@ -1001,7 +1432,7 @@ func ReadRootWorkflow_getJob_Results(msg *capnp.Message) (Workflow_getJob_Result
 }
 
 func (s Workflow_getJob_Results) String() string {
-	str, _ := text.Marshal(0xde7f463f079f6364, s.Struct)
+	str, _ := text.Marshal(0xbce9dc3869c5a017, s.Struct)
 	return str
 }
 
@@ -1065,7 +1496,7 @@ func (s Workflow_getJob_Results_List) Set(i int, v Workflow_getJob_Results) erro
 }
 
 func (s Workflow_getJob_Results_List) String() string {
-	str, _ := text.MarshalList(0xde7f463f079f6364, s.List)
+	str, _ := text.MarshalList(0xbce9dc3869c5a017, s.List)
 	return str
 }
 
@@ -1080,7 +1511,7 @@ func (p Workflow_getJob_Results_Promise) Struct() (Workflow_getJob_Results, erro
 type Workflow_ackJob_Params struct{ capnp.Struct }
 
 // Workflow_ackJob_Params_TypeID is the unique identifier for the type Workflow_ackJob_Params.
-const Workflow_ackJob_Params_TypeID = 0xbb1e81ced54beb7d
+const Workflow_ackJob_Params_TypeID = 0x94d4c0b32ff637f3
 
 func NewWorkflow_ackJob_Params(s *capnp.Segment) (Workflow_ackJob_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
@@ -1098,7 +1529,7 @@ func ReadRootWorkflow_ackJob_Params(msg *capnp.Message) (Workflow_ackJob_Params,
 }
 
 func (s Workflow_ackJob_Params) String() string {
-	str, _ := text.Marshal(0xbb1e81ced54beb7d, s.Struct)
+	str, _ := text.Marshal(0x94d4c0b32ff637f3, s.Struct)
 	return str
 }
 
@@ -1159,7 +1590,7 @@ func (s Workflow_ackJob_Params_List) Set(i int, v Workflow_ackJob_Params) error 
 }
 
 func (s Workflow_ackJob_Params_List) String() string {
-	str, _ := text.MarshalList(0xbb1e81ced54beb7d, s.List)
+	str, _ := text.MarshalList(0x94d4c0b32ff637f3, s.List)
 	return str
 }
 
@@ -1178,7 +1609,7 @@ func (p Workflow_ackJob_Params_Promise) Event() Event_Promise {
 type Workflow_ackJob_Results struct{ capnp.Struct }
 
 // Workflow_ackJob_Results_TypeID is the unique identifier for the type Workflow_ackJob_Results.
-const Workflow_ackJob_Results_TypeID = 0x984386a9600175e5
+const Workflow_ackJob_Results_TypeID = 0xf0040fe0d0e55a1b
 
 func NewWorkflow_ackJob_Results(s *capnp.Segment) (Workflow_ackJob_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
@@ -1196,7 +1627,7 @@ func ReadRootWorkflow_ackJob_Results(msg *capnp.Message) (Workflow_ackJob_Result
 }
 
 func (s Workflow_ackJob_Results) String() string {
-	str, _ := text.Marshal(0x984386a9600175e5, s.Struct)
+	str, _ := text.Marshal(0xf0040fe0d0e55a1b, s.Struct)
 	return str
 }
 
@@ -1226,7 +1657,7 @@ func (s Workflow_ackJob_Results_List) Set(i int, v Workflow_ackJob_Results) erro
 }
 
 func (s Workflow_ackJob_Results_List) String() string {
-	str, _ := text.MarshalList(0x984386a9600175e5, s.List)
+	str, _ := text.MarshalList(0xf0040fe0d0e55a1b, s.List)
 	return str
 }
 
@@ -1238,75 +1669,97 @@ func (p Workflow_ackJob_Results_Promise) Struct() (Workflow_ackJob_Results, erro
 	return Workflow_ackJob_Results{s}, err
 }
 
-const schema_f02bbc845ae92ee4 = "x\xda\xa4U]h#U\x18\xfd\xce\xbd3\x99\xa5\xa6" +
-	"\x9a\xbb\x93E\x11\xdd\xd2\xa5\x0f\xfe5\xeeVE\x8dH" +
-	"\xb2m\xaa\x9blKs\xab\xa5\xf8\x07\xce&\xe3\x1a\x93" +
-	"6\xd9d\xb2a\x85R\xba\xa8\xe0\x9b\x8a\x0f\"\xca\x82" +
-	"o\xe2\xc3\x0a>*\xe8\x82\x0b**\x82\xd67]\x04" +
-	"E\xd6eQ\x91\x16\xea\x83#w\x92\xf9\xe9o\x04\xdf" +
-	"23'\xe7\x9c{\xbes\xef=\xfc,\xcb\xb2#\xfa" +
-	"%\x9dH\xe6\xf4\x98\xfb\xd3\xfc=\x13\xb3\xfc\xd2+$" +
-	"L\x10\xe9\xcc \xbak\x95\xdd\x08\x82\xf9\x03\xeb\x10\xdc" +
-	"_\xdax\xfa\xdd\x97&\xde i\x02D\x9a\x02\xdc\xcf" +
-	"\xf7+\xc0Q\x9e!\xb8KW\x8e\xaf~\xbdr\xf0\xc3" +
-	"(\x83\xc5\x07\x14\xa0\xc2\x15\xc3\xa9\xe3\xef]s\xee\xad" +
-	"\xd1\x8f{\x00(\xc0E\xeeI|\xe51\xac<ve" +
-	"\xe2\x89\x9b\x86/D\x01W\xf9!\x05X\xf3\x00\xbf_" +
-	"x`x\xff\xd9G>\x8b\x02\x0eh\x9e\xc4\xcd\x9a\x02" +
-	"\x88\xd5;\x0f~w\xf1\xf5\xcfI\x0e\x00\xee\xcf\xa9\xcb" +
-	"\x8f\xbf\xf0\xd1\xed\x7ft\xcd\x98G\xb5\xb3\xe6\xa4v=" +
-	"\x91)\xb5\xf3\x04\xf7\xfc\x93\x9d\xbf?\xfd3\xfeM\x94" +
-	"mC\xf3\xe4\xa0+\xb6S\xc7~+\xfdu\xef\xb7\xdf" +
-	"G\x01\xc3zA\x01F=@\xb9t\xce\xc8<\xb4\xfc" +
-	"c\x0f\xc0\x15`Z\xf72\x99\xd3\x95\xc4\xcc\xe5\xf7\xe7" +
-	"?x\xfb\x9d_I$\"\xe6\xbav\xae\xea_\x98\x1b" +
-	"\xba\xfa\xb5\xa6\xabxfb_\xbe653\xbe\x1eU" +
-	"\x93\xb1YE\xf6TL\xa9\xddw\xe6\x9f\x8av\xe0\x93" +
-	"u\x12\x03<\\\x1b\xc1\\\x8a\xbdi\xbe\x18S\xf8\x95" +
-	"\xd8\xc30\xe7\x0c\x83\xeep\x9f\xab\x9fH\x95\xac\xc6\"" +
-	"o\xa4\xe7\xeb\xcd\xea3\xb5z'\xd5h;\x93\xa7\xed" +
-	"Eg\xa4h5-\xbe\xd0\x92\xfb\xb8F\xa4\x81H\xdc" +
-	"\x9a&\x92#\x1c\xf20\x83\x00\x92j\xc6bt\x8cH" +
-	"\xde\xc2!\xeff\xc8(\x86|\x0e\x83\xc40H\x18\xb2" +
-	"\x15\x11\x12\xe1\xaa\x08H\x10v\xd4\xb5J\xd5B\xfd\xc4" +
-	"\xc8\xac\xddj\xd7\x1c\xb4\xa4\x16\xc8\x0e*\x85}\x1c2" +
-	"\xc90d\x95\xaav\x19 \x06\xecM\xa4\xec/\xb4\xbc" +
-	"\x7f\x06\xfe\xc7\xfa\xf8\xdf\xcd\xb0R\x0d\x97\xb5\xa3\xeaI" +
-	"{Kl\x11\xff\xe3\xa1\xffeO\xa1\x0fW0\x02\x15" +
-	"\x86Qs\xfe\x17\xd9I\xdb\xd9\x14G\x84\xaa@$\xe3" +
-	"\x1c\xf2\x06\x06\xb7SoV\xedf>GD\xdb\xe8\xd0" +
-	"H{~Hj\x88\xf6\x15\x05w\xdav\xac\xb2\xe5X" +
-	"\xe4Q\xf9\xcc\x93\xaa(Y\x0e9\xc5\xe0\xe7\x9cW\xc6" +
-	"s\x1c\xb2\xc8 \x18\x92`Db\xfa6\"y\x8cC" +
-	"\x96Uy*5\xc7n\xfa\xb3].\xd5\x17\x1d5\x8d" +
-	"\x9e\x9b\xeb\x16l\xc7\xc2\xb5\x84\"\x07\x12\xa1\x0b\x82z" +
-	"\xb9\xf7Lv\xca1Z\xaa~=\xd56\x93NY\x8e" +
-	"\xdd\x8a\x8c{k\xae\xe9\x90z\xcb\x8e\xd8kBA\xf3" +
-	"#9\x8e\x879\x06\x85\xcd\x8fE\x83d\xbd \xd3\xbd" +
-	" \x1f\xdd^\x8b\xcd\xed\xdd\xcd\x11\xeb\x0d9\x15\x8e\xb4" +
-	"\x08Dw\xcf\xa1>\xbb\xc7\xa8\xdag\x10'\x868a" +
-	"\xe8\xb4Uk\xdb\xfe\xd3\x7f\x09\xb2\xdf\xc6\xef7#\xf8" +
-	"\xd4\xbc\xdeQ\xc6\x93\\'\x0a\xae,\xf8\xf7\x86x\xb5" +
-	"@L\xbcl \xbck\xe0\x1f\xf2bI}k\x1b`" +
-	"\xc1\xb1\x0e\xff\xc4\x15\x95\xe7\x89\x09\xcb\x00\x0fn\x18\xf8" +
-	"G\xbb\x98K\x13\x13y\x03Zp\xc1\xc1\xbf\x0a\xc5\x83" +
-	"\xea\xdb\x11\xc3\xf575\x11e\xe1\xfa\xd5\x0c\x9e\xbc(" +
-	"(\xd3}\x9bE\xa6[\x8a,2\xdd\xe3,\x8b\"\xf0" +
-	"o\x00\x00\x00\xff\xff\xa8\xfa\xdf\x08"
+const schema_d598217bc368711c = "x\xda\xa4Uah\x1cE\x14~of\xf7\xe6\x12\x93" +
+	"6\xe3Fk\xb5\x10\x1aRl\xa4M\xd3\xc4j=\x08" +
+	"w\xc6\x14\xbc\x98\xcaM\xa8U\x8bA7\x97\xb59\xef" +
+	"r\x97\xdc\xed5M\xa5\xc6H[\x88U\xb1\xa0\xd0V" +
+	"\x90\xa6Z!B\xa9\xb5\x88\x88\x8a\x95\xd2J\x8b\x88-" +
+	"*\xfd!\xe2\x9fR\x8a \x82\xe8\x9f\x12Wf\xf7f" +
+	"o\x13\xef\x9a\x80\xff\xeev\xbf\xf9\xe6\xbd\xef\xbd\xef\xdb" +
+	"\xf6Gh\x8cl\xd4\xa3\x0c@l\xd3C\xce\xdc\x99\xda" +
+	"\xd9\x0bk\x1e\x9b\x02n \x80\x8e\x0c\xa0s?\xcd#" +
+	"\xa0q\x88F\x01\x9d\xf3s\xc7\xbf:\xfa\xcf\xa5\x83\x1e" +
+	"@\x93\xefO\xd3f\x04\xcd\xd9pn\xed\xba\xdf\xeb\xee" +
+	"|\xadt\x94\xcaWGh\x87<:CO\x01:\xfb" +
+	"B\x07\xee\xfd|\xfa\x97\xd7\x83\xdc]\xda\x0e\x09\x88k" +
+	"\x92\xfb\xe6\xc1\xc3\x1f^I\xfd\xf6f\x10\x90\xd2\xf6H" +
+	"@\xd1\x05\xfc\xf9\xe0\xdf\x1b\xce\x9c\xfd\xe1\xad\x12\x80H" +
+	"\xc0\x09\xadV\x02Nj\xe3\x80N\xfd\xfb\x0f<\xfbR" +
+	"\xe8\xb3w\x83\x0c5\xba\x0b\xe0\xbad8\xf5\xdd\xc9\xf6" +
+	"\xce\x95\x03\xef\x01\xaf\xa5\xce\xaa\xb1\xe1s/\xae>\xfc" +
+	"#\x00\x1a\x9b\xf4\xa3F\x97.\xf1\x0f\xe9\xdf\xa01\x12" +
+	"b\x00N\xf8\xea\xc4\xe4\xe5\xc8\x81\x0f\x82tO\x84\"" +
+	"\x92n $\xe9\xd6M\xaf\xd8\x98\xbb\xa3\xf9\xe3 `" +
+	"ohP\x02\xa6]\xc0\x8ac\xe7S\x9b\x7f\xbe\xf1E" +
+	"P\x94\xd9\xd0\xed\x12p:$E\xb9\xb6\xa6\xc6>\xdb" +
+	"6|!\xc8\x10g\xcd\x12 \x98d\x98J\xf6\x0d\xbd" +
+	"q\xdb\xd3\xdf\x06\x01c\xecn\x09\x98p\x01\xdd\x9f\xb6" +
+	"\xfeT\xbb\xf9\xd8\x0d\xe0\x0d\xe8|}\xb5\xf3\xa3\xee\xed" +
+	"{\xfe\xf2\xc41\x8e\xb0K\xc6\x09&\x7f\xcd0\xa9\xcf" +
+	"=;\xae}\xff\xebr\xed\x0f\x10\x06\xaa\xf1\xcd1\xb7" +
+	"\x1c=,\xc9\xfc\xf3\xa2\x16\xb1,\x90[\xb8\xb1&\xfc" +
+	"\x8a\xd1\x1a^\x01`l\x0a_\x07t\xde\x11]W." +
+	"\xb6\xda7K\xa5\xb9l+k\xdc\xd2V\xd7\\\x87\xf5" +
+	"\xce\x0b\xb9\xc1\xb6\xa49\x9a\xd5F#O\xe6\xf2\xe9\xe7" +
+	"3\xb9\xf1\xb6\x9d\x96\xbde\x97\x95\xb5\x1f\xced\xb6[" +
+	"\xf9B*\x97-\xb4$\x9a\xcc\xbc9R\x10\x1a\xd5\x00" +
+	"4\x04\xe0\xf5\xdd\x00\"LQ4\x12\x9c\xb4$>\xde" +
+	"\x83\xf5@\xb0\x1e\xd0\xa7\xa5\x01\xda\xd1\xa2G\xdb\xd2o" +
+	"\x15\x8a,c\x17\xaa\xa1\x1e\xb7\xc6=\xa0\xba\xb4\xce\xbf" +
+	"tK\x04@\xc4(\x8a>\x82\x1c\xb1QJ\xc4\xe3\xbd" +
+	"\x00\xe2Q\x8ab\x1bANH#\x12\x00.:\x00D" +
+	"\x1fE\xf1\x14\xc1\xa8d\x0eT7\x9e\xcb\xa7\xad|\xbc" +
+	"\x07\x00\xd4\xb3&\xb7\x03l(\xcb\x0b\x88\x0d\x81N\x16" +
+	"\x08\xd4g\xdaV\xc1\xeb'\xde\xd3\x920\xf3&\x9d\xaf" +
+	"N\xa4\xac\xce\xc2\xeb\x97\xaay\x7f\xd4*\x143vE" +
+	"\xda\x16\x82Q\xb7\xe4\x02.\x03LP\\P\xfa\xb2*" +
+	"C0\x93\xe9\xde\xdc\xa0[\xf0H\xc1\xe5R\xd4\xadR" +
+	"\xb0\x16\x8a\xa2= \xedz\xf9p-Eq?\xa9*" +
+	"Q\x93\x99L/2\xfa\x9d\x96=\xef\xd6@Crv" +
+	"u\x14\xc5]\xa4\xe2\\|:Tt47\x9e@\x14" +
+	"\xab\xa8\x0e\xe0\xef7\xaa\xd0\xe3\x97{\x81\xf0\x8b\x0c\xd1" +
+	"O;T\x19\xc1\xbf\x1c\x04\xc2?aH|\xcb\xa22" +
+	"7\x9f\x95\xe7f\x18R?`Q\x85\x1d\x7f\xfb8\x10" +
+	"~\x88\xa1\xe6\x07$\xaaX\xe1\xfb_\x05\xc2\xa7\x18\xea" +
+	"~\xb2\xa1J\x14^\x8c\x00\xe1)\x86!?\x16Q\xd9" +
+	"\x9b\x0f\xc8w\x829\xca\x15\x00\x10CGm?0+" +
+	"k\xc7\xd0Qk\xe1\xbdU\xffPm\x09\xcbe\x0b\xde" +
+	"sw\x1fQ-\xa4DG=\xd1c\x18\xf5f\x1e\xc3" +
+	"\x04\xe2\xa2\x96\xab\xb4sK1\xfa-\xed\xa1\x0c\xff\x7f" +
+	"\xd2\xa3\xb4B\xfdny8/\x13\xba+e\x82\\\xdc" +
+	"\x1e\x8a\"\x11\xc8\x84\xad\x91rP,\xbct\xfe\x16W" +
+	"\xb3,\xad`\xd9\x8a\xedu\x94\xdb[4Z*\x92V" +
+	"\x88\x94\xa5HFF#\xee\xf9\xb6\xad\x96m\x0e\x99\xb6" +
+	"\x09 \xdd\x12\xb0y\xf3\"6gik\x02\xeb\x80`" +
+	"\x1d`\xd3.3S\xb4\xd4\xbf[\x05\x8a?\x97*\x1a" +
+	"\x98\xc9\xb45\x84\x08\x04q\xbe\xa9\xbd\xf5\x16\x1a\x06?" +
+	"\x93\xd8\xeb\x94\xeb\x07\xd1\xe0s\x9ar\x82\xcfP\x14\xc3" +
+	"\x04U\xf1\x96\xd4\xe59\x8a\"#G\x8d\xde\xa8S\xf7" +
+	"\x01\x88!\x8a\xe2e\x82\x9c\x92F\xa4\x00|\xaf<\xbd" +
+	"\x9b\xa2\xd8'C9\x95\xb1\xad\xbc*i2\x99\xcb\xda" +
+	"rL%A\x97\x8fX\xb6Y\x8eV\xbf4/Z\xa3" +
+	"^R-\xeds\xa7&Y\xb9\x0b\x7f\x06Vo\xa9\xe2" +
+	"\xd1\xc0\xc6\x8e\xc8\xde\x86)\x0a[\xb6A\xbd6\xc6\xa4" +
+	"\xb0\x19\x8ab\xf7\x92>m\xff\xd9\xf4*\xfb\xf8o\x00" +
+	"\x00\x00\xff\xff\x1c\xc1\x99\xde"
 
 func init() {
-	schemas.Register(schema_f02bbc845ae92ee4,
-		0x90df0352433557e1,
-		0x984386a9600175e5,
-		0xbb1e81ced54beb7d,
-		0xbf2d9c9f0bab4b71,
-		0xc1211c5b43eb5981,
-		0xc8538212213bc1ef,
-		0xc994c5d41e2fd511,
-		0xd00cf1c4fa775caf,
-		0xd6d337f363ea4871,
-		0xde7f463f079f6364,
-		0xe7a29db357b0e94f,
-		0xf6424f4c92cc064f,
-		0xf6c0150469fe7938)
+	schemas.Register(schema_d598217bc368711c,
+		0x814b25c6a90ab3fd,
+		0x8bcafe9abfa2fdc5,
+		0x8c160cee2c28c32f,
+		0x8dde89bb27860684,
+		0x90eb69d2aa988bfb,
+		0x94d4c0b32ff637f3,
+		0x9eb9067e5f36a40d,
+		0xa35d193330adceaf,
+		0xa6863ad17f79d808,
+		0xb222156f3117892c,
+		0xbce9dc3869c5a017,
+		0xc6682ec0740925e5,
+		0xcc590b8e644c6381,
+		0xe9a0380ad629b742,
+		0xf0040fe0d0e55a1b,
+		0xf57a5642b033d8c1,
+		0xfb7429c9d23d519b)
 }
