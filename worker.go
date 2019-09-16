@@ -1,325 +1,84 @@
 package ravenworker
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"path"
-	"time"
+	"net"
+	"sync"
+
+	"github.com/cenkalti/backoff"
+	"github.com/dutchsec/raven-worker/workflow"
+	"github.com/labstack/gommon/log"
+	context "golang.org/x/net/context"
+	"zombiezen.com/go/capnproto2/rpc"
 )
 
-const defaultHTTPTimeout = 5 * time.Second
-
-type Config struct {
-	RavenURL string
-	WorkerId string
-	FlowId   string
+type Worker interface {
+	Consume() (Reference, error)
+	Get(Reference) (Message, error)
+	Ack(Reference, ...AckOptionFunc) error
+	Produce(Message) error
 }
 
-type Message struct {
-	Ref     Reference
-	Content string
+type DefaultWorker struct {
+	Config
+
+	w *workflow.Workflow
+	m sync.Mutex
+
+	connectionCounter int
 }
 
-type Reference struct {
-	AckID   string `json:"ack_id"`
-	EventId string `json:"event_id"`
-	FlowId  string `json:"flow_id"`
-}
+func (w *DefaultWorker) connect() error {
+	w.m.Lock()
+	defer w.m.Unlock()
 
-// NewRavenworker returns a new configured raven worker client
-func NewRavenworker(ravenURL, flowId, workerId string) (*Config, error) {
-	if ravenURL == "" {
-		return nil, errors.New("env RAVEN_URL needs to be set")
-	}
-	if flowId == "" {
-		return nil, errors.New("env FLOW_ID needs to be set")
-	}
-	if workerId == "" {
-		return nil, errors.New("env WORKER_ID needs to be set")
-	}
+	u := w.urls[w.connectionCounter%len(w.urls)]
 
-	c := &Config{
-		RavenURL: ravenURL,
-		WorkerId: workerId,
-		FlowId:   flowId,
-	}
-	return c, nil
-}
+	log.Infof("Connecting to rpc server: %s", u)
 
-// NewEvent sends a ravenworker Message. When a worker only creates
-// new events/messages, use NewEvent.
-// Use this function for the 'extract' worker type.
-func (c Config) NewEvent(msg string) error {
-	// Get unique event ID
-	eventID, err := c.retrieveNewEventID()
+	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
 		return err
 	}
 
-	m := Message{}
-	m.Content = msg
-	m.Ref.EventId = eventID
+	rpcconn := rpc.NewConn(rpc.StreamTransport(conn))
 
-	// Put the new message
-	u, err := url.Parse(c.RavenURL)
-	if err != nil {
-		return err
-	}
+	client := rpcconn.Bootstrap(context.Background())
 
-	// Set path to correct endpoint
-	u.Path = path.Join(u.Path, "flow", c.FlowId, "events", m.Ref.EventId)
+	w.w = &workflow.Workflow{Client: client}
 
-	data, err := json.Marshal(m.Content)
-	if err != nil {
-		return err
-	}
-
-	// Create body from message
-	var body io.Reader
-	body = bytes.NewReader(data)
-
-	// create the request
-	req, err := http.NewRequest("PUT", u.String(), body)
-	if err != nil {
-		return err
-	}
-
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response (AckJob) Status: %s, Error: %v",
-			resp.Status, err)
-	}
-	return nil
+	w.connectionCounter++
+	return err
 }
 
-// Consume gets a message from the queue. A Message is returned when there is
-// a job, sleeps with incremented interval when there are no messages and
-// returns an error in case of one.
-// Use this function for the 'transform' and 'load' worker types.
-func (c Config) Consume() (Message, error) {
-	msg := Message{}
-	noMsgCount := 0
+// New returns a new configured Raven Worker client
+func New(opts ...OptionFunc) (Worker, error) {
+	c := Config{
+		l: DefaultLogger,
 
-	for {
-		reference, err := c.getWork()
-		if err != nil {
-			if err != io.EOF {
-				return msg, err
-			}
-			sleeper(noMsgCount)
-			noMsgCount++
-		} else {
-			msg.Ref = reference
-			break
+		newBackOff: func() backoff.BackOff {
+			return backoff.NewExponentialBackOff()
+		},
+	}
+
+	for _, optFn := range opts {
+		if err := optFn(&c); err != nil {
+			return nil, err
 		}
 	}
 
-	newEvent, err := c.getEvent(msg.Ref)
-	if err != nil {
-		return msg, err
+	if err := c.validate(); err != nil {
+		return nil, err
 	}
 
-	msg.Content = newEvent
-	return msg, nil
-}
-
-// Produce puts the Message with changed Message content and acks the message
-// so it is removed from the queue.
-// Use this function for the 'transform' worker type.
-func (c Config) Produce(msg Message) error {
-	// create new URL
-	u, err := url.Parse(c.RavenURL)
-	if err != nil {
-		return err
+	w := &DefaultWorker{
+		Config: c,
 	}
 
-	// Set path to correct endpoint
-	u.Path = path.Join(u.Path, "workers", c.WorkerId, "ack", msg.Ref.AckID)
-
-	data, err := json.Marshal(msg.Content)
-	if err != nil {
-		return err
+	// TODO: just start and have backoff handle
+	if err := w.connect(); err != nil {
+		return nil, err
 	}
 
-	var msgBody io.Reader
+	return w, nil
 
-	msgBody = bytes.NewReader(data)
-
-	// create the request
-	req, err := http.NewRequest("PUT", u.String(), msgBody)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-
-	client := &http.Client{
-		Timeout: defaultHTTPTimeout,
-	}
-
-	// Do the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Bad status returned. req: %s, Status: %s",
-			u.String(), resp.Status)
-	}
-	return nil
-}
-
-func (c Config) getEvent(ref Reference) (string, error) {
-	var msg string
-	// Create endpoint
-	u, err := url.Parse(c.RavenURL)
-	if err != nil {
-		return msg, err
-	}
-
-	// Set path to correct endpoint
-	u.Path = path.Join(u.Path, "flow", c.FlowId, "events", ref.EventId)
-
-	// create the request
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return msg, err
-	}
-	client := &http.Client{
-		Timeout: defaultHTTPTimeout,
-	}
-
-	// Do the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return msg, err
-	}
-	defer resp.Body.Close()
-
-	// New buffer to fill
-	var body bytes.Buffer
-
-	// body contains the message
-	_, err = body.ReadFrom(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Error reading response body: %s", err)
-	}
-
-	return body.String(), nil
-}
-
-// Check if there's work
-func (c Config) getWork() (Reference, error) {
-	// In the response is the reference to the message
-	ref := Reference{}
-
-	// Create endpoint
-	u, err := url.Parse(c.RavenURL)
-	if err != nil {
-		return ref, err
-	}
-
-	// Set path to correct endpoint
-	u.Path = path.Join(u.Path, "workers", c.WorkerId, "work")
-
-	// create the request
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return ref, err
-	}
-
-	client := &http.Client{
-		Timeout: defaultHTTPTimeout,
-	}
-
-	// Do the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return ref, nil
-	}
-	defer resp.Body.Close()
-
-	// Decode into Reference
-	err = json.NewDecoder(resp.Body).Decode(&ref)
-	if err != nil {
-		return ref, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return ref, fmt.Errorf("Bad status returned. req: %s, Status: %s\n",
-			u.String(), resp.Status)
-	}
-
-	fmt.Printf("AckID: %s\nEventID: %s\nFlowID: %s\n", ref.AckID,
-		ref.EventId, ref.FlowId)
-	return ref, nil
-}
-
-func (c Config) retrieveNewEventID() (string, error) {
-	// create new URL
-	u, err := url.Parse(c.RavenURL)
-	if err != nil {
-		return "", err
-	}
-
-	// Set path to correct endpoint
-	u.Path = path.Join(u.Path, "flow", c.FlowId, "events")
-
-	// create the request
-	req, err := http.NewRequest("POST", u.String(), nil)
-	if err != nil {
-		return "", err
-	}
-
-	client := &http.Client{
-		Timeout: defaultHTTPTimeout,
-	}
-
-	// Do the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", nil
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bad status returned. req: %s, Status: %s",
-			u.String(), resp.Status)
-	}
-
-	// New buffer to fill
-	var body bytes.Buffer
-	// body is new event ID
-	_, err = body.ReadFrom(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Error reading response body: %s", err)
-	}
-
-	eventID := body.String()
-	return eventID, nil
-}
-
-func sleeper(count int) {
-	var t float64 = float64(count) * 1000
-	if t > 5000 {
-		t = 5000
-	}
-	sleep := time.Duration(t)
-	fmt.Printf("Awaiting new messages. Interval %v miliseconds\n", t)
-	time.Sleep(sleep * time.Millisecond)
 }

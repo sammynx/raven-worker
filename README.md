@@ -11,64 +11,93 @@ The goal of a `flow` is to filter, extract, enrich and store streaming data to e
 Workers come in three different types: `extract`, `transform` and `load` workers. These types are based on the [graph theory](https://en.wikipedia.org/wiki/Graph_theory) where each worker represents a `node`.  
 Consider any Raven flow a `directed acyclic graph`.  
 
+
+## About Workers
+
+* Workers need to be as simple as possible, only do their job. Everything else
+  will be handled by Raven.
+* If an error occurs, just panic. Raven will handle monitoring and restarting
+  workers. The Raven Worker base package will use a sequential backoff algorithm for
+  handling incidental errors.
+* If there isn't enough work, for a longer period, just stop. Raven will monitor
+  backlogs and start new workers when necessary. 
+
 ## How to use
 
 The following functions are exposed by the package:
 
-### NewRavenworker
+### New
 This initializes the worker.  
 
 For the Raven framework, a `worker` needs three variables to work with:
-* `RavenURL` to connect to the Raven framework.  
-* `WorkerID` to identify itself and get new jobs.  
-* `FlowID` to get the right jobs for the flow it belongs to and therefore receive the right events (messages) to process.  
+* `ravenworker.WithRavenURL` to connect to the Raven framework. Multiple values
+  can be used here, as it will use them in a round robin configuration.  
+* `ravenworker.WithWorkerID` to identify itself and get new jobs.  
+* `ravenworker.WithFlowID` to get the right jobs for the flow it belongs to and therefore receive the right events (messages) to process.  
+
+The `ravenworker.DefaultEnvironment()` method can be used for convenience, to
+load the configuration from environment variables.
 
 Example:
 ```go
-	c, _ := ravenworker.NewRavenworker(
-		os.Getenv("RAVEN_URL"),
-		os.Getenv("FLOW_ID"),
-		os.Getenv("WORKER_ID"))
+	c, err := ravenworker.New(
+        ravenworker.DefaultEnvironment(),
+    )
 
-```
-
-Now you can use the methods:
-
-### NewEvent
-If the worker is of type `extract` (generates data or gets data from an external source), use the `NewEvent` method.  
-This method will generate new events for the flow.  
-
-Example:
-```go
-	message := "Some message to send "
-    err := c.NewEvent(message)
     if err != nil {
-        fmt.Println(err)
+        // handle error
     }
 ```
+
+
+Now you can use the methods:
 
 ### Consume
 When a worker is of type `transform` or `load`, use `Consume` to retrieve the message from the stream.  
 
 Example:
 ```go
-    message, err := c.Consume()
+    ref, err := c.Consume()
     if err != nil {
-        // handle err
+        // handle error
     }
-    // do something with the message
 ```
 
-
-### Produce
-When a worker is of type `transform` or `load`, use `Produce` to put the new message or ack the message.  
-The actual content (payload) is stored in `message.Content` which takes a string.  
+### Get
+Get will retrieve the actual message.
 
 Example:
 ```go
-		message.Content = "This is the new message: "
-		err = c.Produce(message)
-		if err != nil {
-            // handle err
-		}
+    msg, err := c.Get(ref)
+    if err != nil {
+        // handle error
+    }
 ```
+
+### Ack
+Ack will acknowledge the message and proceeds the flow.
+
+Example:
+```go
+    msg, err := c.Ack(ref, WithMessage(msg), WithFilter())
+    if err != nil {
+        // handle error
+    }
+```
+
+### Produce
+When a worker is of type `transform` or `load`, use `Produce` to put the new message or ack the message.  
+The actual content (payload) is stored in `message.Content` which takes a byte
+array. Convenience functions like JsonContent (which encodes the object to json
+byte array) exists.
+
+Example:
+```go
+    message := NewMessage()
+    message.Content = JsonContent(obj)
+
+    if err := c.Produce(message); err != nil {
+        // handle error
+    }
+```
+

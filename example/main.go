@@ -2,54 +2,65 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
-	"go.dutchsec.com/ravenworker"
+	ravenworker "github.com/dutchsec/raven-worker"
+	worker "github.com/dutchsec/raven-worker"
 )
 
-func main() {
+var log = worker.DefaultLogger
 
-	exampleExtract()
-	// exampleTransform()
+func main() {
+	exampleProduce()
+
+	exampleTransform()
 }
 
-func exampleExtract() {
-	c, _ := ravenworker.NewRavenworker(
-		os.Getenv("RAVEN_URL"),
-		os.Getenv("FLOW_ID"),
-		os.Getenv("WORKER_ID"))
+// exampleProduce will just produce a new message
+func exampleProduce() {
+	c, err := worker.New(
+		worker.DefaultEnvironment(),
+	)
+	if err != nil {
+		log.Fatalf("Could not initialize raven worker: %s", err)
+	}
 
-	message := "Some message to send "
-
-	// Append time to message
 	for i := 0; i < 10; i++ {
-		message = message + time.Now().String()
-		err := c.NewEvent(message)
-		if err != nil {
-			fmt.Println(err)
+		message := worker.NewMessage()
+
+		message.Content = worker.StringContent(fmt.Sprintf("message %v", time.Now().String()))
+
+		if err := c.Produce(message); err != nil {
+			log.Fatalf("Could not produce events: %s", err)
 		}
 	}
 }
 
+// exampleTransform will consume a new message, update the message
+// and acknowledge the message with the new content
 func exampleTransform() {
-	c, _ := ravenworker.NewRavenworker(
-		os.Getenv("RAVEN_URL"),
-		os.Getenv("FLOW_ID"),
-		os.Getenv("WORKER_ID"))
+	c, err := worker.New(
+		worker.DefaultEnvironment(),
+	)
+	if err != nil {
+		log.Fatalf("Could not initialize raven worker: %s", err)
+	}
 
 	for {
-		message, err := c.Consume()
+		ref, err := c.Consume()
 		if err != nil {
-			fmt.Println(err)
-			continue
+			log.Fatalf("Could not consume message: %s", err)
 		}
 
-		// Do something with the message
-		message.Content = "This is the new message: " + c.WorkerId
-		err = c.Produce(message)
+		message, err := c.Get(ref)
 		if err != nil {
-			fmt.Printf("Error acknowledging message: %s", err)
+			log.Fatalf("Could not get message: %s", err)
+		}
+
+		message.Content = worker.StringContent("test")
+
+		if err := c.Ack(ref, ravenworker.WithMessage(message)); err != nil {
+			log.Fatalf("Could not ack message: %s", err)
 		}
 	}
 }
