@@ -1,6 +1,7 @@
 package ravenworker
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -77,6 +78,7 @@ func errorFunc(err error) OptionFunc {
 	}
 }
 
+// DefaultEnvironment returns the optionFunc that expects 'RAVEN_URL', 'FLOW_ID' and 'WORKER_ID' as environmental variables
 func DefaultEnvironment() OptionFunc {
 	opts := []OptionFunc{}
 
@@ -93,6 +95,39 @@ func DefaultEnvironment() OptionFunc {
 	}
 
 	if optionFn, err := WithWorkerID(os.Getenv("WORKER_ID")); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
+
+	return func(c *Config) error {
+		for _, optionFn := range opts {
+			if err := optionFn(c); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
+
+// CustomEnvironment returns the optionFunc and takes 'ravenURL', 'flowID' and 'workerID' as string arguments.
+func CustomEnvironment(ravenURL, flowID, workerID string) OptionFunc {
+	opts := []OptionFunc{}
+
+	if optionFn, err := WithRavenURL((fmt.Sprintf("capnproto://%s", ravenURL))); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
+
+	if optionFn, err := WithFlowID(flowID); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
+
+	if optionFn, err := WithWorkerID(workerID); err != nil {
 		return errorFunc(err)
 	} else {
 		opts = append(opts, optionFn)
