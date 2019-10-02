@@ -49,6 +49,19 @@ Example:
     }
 ```
 
+The `ravenworkworker.CustomEnvironment` can be used when environment variables are not available. `CustomEnvironment` takes three string arguments to set the raven workflow url, flow ID and worker ID. 
+
+Example:
+```go
+	c, err := ravenworker.New(
+        ravenworker.Customenvironment("localhost:8023", "568e8bee-aca8-40c2-bfed-504ce103d4b6", "b557f6b3-b436-4635-9ae0-010fed184168"),
+    )
+
+    if err != nil {
+        // handle error
+    }
+```
+Note: when specifying the raven workflow url, leave out any scheme (http/https) in the string. Raven-worker uses the capnproto protocol and the function will add the proper scheme for you.  
 
 Now you can use the methods:
 
