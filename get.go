@@ -5,7 +5,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	context "golang.org/x/net/context"
 )
 

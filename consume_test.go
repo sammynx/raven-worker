@@ -8,13 +8,13 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
+	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
-	uuid "github.com/satori/go.uuid"
 )
 
 func TestConsume(t *testing.T) {
-	ackID := uuid.NewV4()
-	eventID := uuid.NewV4()
+	ackID, _ := uuid.NewV4()
+	eventID, _ := uuid.NewV4()
 
 	srvr, err := testServer(&workflowServer{
 		getJob: func(getJob workflow.Workflow_getJob) error {
@@ -54,8 +54,8 @@ func TestConsume(t *testing.T) {
 }
 
 func TestConsumeAck(t *testing.T) {
-	ackID := uuid.NewV4()
-	eventID := uuid.NewV4()
+	ackID, _ := uuid.NewV4()
+	eventID, _ := uuid.NewV4()
 
 	srvr, err := testServer(&workflowServer{
 		getJob: func(getJob workflow.Workflow_getJob) error {
@@ -68,7 +68,7 @@ func TestConsumeAck(t *testing.T) {
 				return err
 			} else if id, err := uuid.FromBytes(v); err != nil {
 				return fmt.Errorf("AckID is not a valid UUID: %s", err)
-			} else if !uuid.Equal(id, ackID) {
+			} else if id != ackID {
 				return fmt.Errorf("Unexpected AckID: got=%s", v)
 			}
 
@@ -103,8 +103,8 @@ func TestConsumeAck(t *testing.T) {
 }
 
 func TestConsumeAckWithContent(t *testing.T) {
-	ackID := uuid.NewV4()
-	eventID := uuid.NewV4()
+	ackID, _ := uuid.NewV4()
+	eventID, _ := uuid.NewV4()
 
 	msg := Message{
 		Content: JsonContent("test"),
@@ -159,8 +159,8 @@ func TestConsumeAckWithContent(t *testing.T) {
 }
 
 func TestConsumeGet(t *testing.T) {
-	ackID := uuid.NewV4()
-	eventID := uuid.NewV4()
+	ackID, _ := uuid.NewV4()
+	eventID, _ := uuid.NewV4()
 
 	srvr, err := testServer(&workflowServer{
 		getJob: func(getJob workflow.Workflow_getJob) error {
@@ -174,7 +174,7 @@ func TestConsumeGet(t *testing.T) {
 				return err
 			} else if id, err := uuid.FromBytes(v); err != nil {
 				return fmt.Errorf("EventID is not a valid UUID: %s", err)
-			} else if !uuid.Equal(id, eventID) {
+			} else if id != eventID {
 				return fmt.Errorf("Unexpected EventID: got=%s", v)
 			}
 

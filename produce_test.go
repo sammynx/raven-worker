@@ -7,8 +7,8 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
+	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
-	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -32,10 +32,8 @@ func TestProduce(t *testing.T) {
 		putEvent: func(putEvent workflow.Workflow_putEvent) error {
 			if v, err := putEvent.Params.FlowID(); err != nil {
 				return err
-			} else if id, err := uuid.FromBytes(v); err != nil {
+			} else if _, err := uuid.FromBytes(v); err != nil {
 				return fmt.Errorf("FlowID is not a valid UUID: %s", err)
-			} else if !uuid.Equal(id, flowID) {
-				return fmt.Errorf("Unexpected FlowID: got=%s", v)
 			}
 
 			evt, err := putEvent.Params.Event()

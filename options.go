@@ -8,7 +8,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 type OptionFunc func(*Config) error
