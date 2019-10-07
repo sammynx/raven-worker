@@ -70,7 +70,7 @@ When a worker is of type `transform` or `load`, use `Consume` to retrieve the me
 
 Example:
 ```go
-    ref, err := c.Consume()
+    ref, err := c.Consume(context.Background())
     if err != nil {
         // handle error
     }

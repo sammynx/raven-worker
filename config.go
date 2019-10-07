@@ -3,6 +3,7 @@ package ravenworker
 import (
 	"errors"
 	"net/url"
+	"time"
 
 	"github.com/gofrs/uuid"
 )
@@ -17,6 +18,8 @@ type Config struct {
 	l Logger
 
 	newBackOff BackOffFunc
+
+	consumeTimeout time.Duration
 }
 
 func (c Config) validate() error {

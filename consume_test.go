@@ -10,6 +10,7 @@ import (
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
+	context "golang.org/x/net/context"
 )
 
 func TestConsume(t *testing.T) {
@@ -39,7 +40,7 @@ func TestConsume(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	ref, err := w.Consume()
+	ref, err := w.Consume(context.Background())
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -92,7 +93,7 @@ func TestConsumeAck(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	ref, err := w.Consume()
+	ref, err := w.Consume(context.Background())
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -148,7 +149,7 @@ func TestConsumeAckWithContent(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	ref, err := w.Consume()
+	ref, err := w.Consume(context.Background())
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -205,7 +206,7 @@ func TestConsumeGet(t *testing.T) {
 		t.Fatalf("Could not initialize new raven worker: %s", err.Error())
 	}
 
-	ref, err := w.Consume()
+	ref, err := w.Consume(context.Background())
 	if err != nil {
 		t.Fatalf("Could not consume message: %s", err.Error())
 	}
@@ -252,7 +253,7 @@ func TestBackOff(t *testing.T) {
 	}
 
 	// we are expecting an error
-	if _, err := w.Consume(); err == nil {
+	if _, err := w.Consume(context.Background()); err == nil {
 		t.Fatalf("Expected an error.")
 	} else if err.Error() != "job.capnp:Workflow.getJob: rpc exception: ERROR" {
 		t.Fatalf("Expected different error.")

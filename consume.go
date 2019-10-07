@@ -1,12 +1,11 @@
 package ravenworker
 
 import (
-	"time"
+	"context"
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
-	context "golang.org/x/net/context"
 )
 
 var EmptyMessage = Message{}
@@ -34,33 +33,49 @@ var EmptyMessage = Message{}
 //     }
 //
 // Use this function for the 'transform' and 'load' worker types.
-func (c *DefaultWorker) Consume() (Reference, error) {
-	var t *time.Timer
+// blocks until it receives a message or 'consumeTimeout' expires.
+func (c *DefaultWorker) Consume(ctx context.Context) (Reference, error) {
 
-	cb := c.newBackOff()
+	ctxTimeout, cancel := context.WithTimeout(ctx, c.consumeTimeout)
+	defer cancel()
 
-	for {
-		reference, err := c.waitForWork()
-		if err == nil {
-			return reference, nil
-		}
+	cb := backoff.WithContext(c.newBackOff(), ctxTimeout)
+	var ref Reference
 
-		next := cb.NextBackOff()
-		if next == backoff.Stop {
-			c.l.Errorf("Could not consume message: %s", err)
-			return Reference{}, err
-		} else if t != nil {
-			t.Reset(next)
-		} else {
-			t = time.NewTimer(next)
-			defer t.Stop()
-		}
-
-		c.l.Debugf("Got error while consuming message for: %s. Will retry in %v.", err.Error(), next)
-
-		<-t.C
+	operation := func() error {
+		var err error
+		ref, err = c.getWork()
+		return err
 	}
+
+	// retry until no error is returned and timeout is not expired.
+	err := backoff.Retry(operation, cb)
+
+	return ref, err
 }
+
+func (c *DefaultWorker) getWork() (Reference, error) {
+	res, err := c.w.GetJob(context.Background(), func(params workflow.Workflow_getJob_Params) error {
+		return params.SetWorkerID(c.WorkerID.Bytes())
+	}).Struct()
+
+	if err != nil {
+		return Reference{}, err
+	}
+
+	ackID, _ := res.AckID()
+	ackUUID, _ := uuid.FromBytes(ackID)
+
+	eventID, _ := res.EventID()
+	eventUUID, _ := uuid.FromBytes(eventID)
+
+	return Reference{
+		AckID:   ackUUID.String(),
+		EventID: eventUUID.String(),
+	}, nil
+}
+
+/*
 
 func IsNotFoundErr(err error) bool {
 	return err.Error() == "job.capnp:Workflow.getJob: rpc exception: item not found"
@@ -112,3 +127,4 @@ func (c *DefaultWorker) waitForWork() (Reference, error) {
 		<-t.C
 	}
 }
+*/

@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/cenkalti/backoff"
 
@@ -12,6 +13,16 @@ import (
 )
 
 type OptionFunc func(*Config) error
+
+func WithConsumeTimeout(s string) OptionFunc {
+	return func(c *Config) error {
+		timeout, err := time.ParseDuration(s)
+		if err == nil {
+			c.consumeTimeout = timeout
+		}
+		return err
+	}
+}
 
 func WithRavenURL(urlStr string) (OptionFunc, error) {
 	parts := strings.Split(urlStr, ",")
