@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,16 +14,6 @@ import (
 )
 
 type OptionFunc func(*Config) error
-
-func WithConsumeTimeout(s string) OptionFunc {
-	return func(c *Config) error {
-		timeout, err := time.ParseDuration(s)
-		if err == nil {
-			c.consumeTimeout = timeout
-		}
-		return err
-	}
-}
 
 func WithRavenURL(urlStr string) (OptionFunc, error) {
 	parts := strings.Split(urlStr, ",")
@@ -78,6 +69,31 @@ type BackOffFunc func() backoff.BackOff
 func WithBackOff(fn BackOffFunc) OptionFunc {
 	return func(c *Config) error {
 		c.newBackOff = fn
+		return nil
+	}
+}
+
+//WithConsumeTimeout time frame to wait for a new message.
+// if timeout expires the returned error is 'context.DeadlineExceeded'
+func WithConsumeTimeout(s string) OptionFunc {
+	return func(c *Config) error {
+		timeout, err := time.ParseDuration(s)
+		if err != nil {
+			return err
+		}
+		c.consumeTimeout = timeout
+		return nil
+	}
+}
+
+//WithMaxIntake ingest messages until maxIntake is reached.
+func WithMaxIntake(num string) OptionFunc {
+	return func(c *Config) error {
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			return err
+		}
+		c.maxIntake = n
 		return nil
 	}
 }

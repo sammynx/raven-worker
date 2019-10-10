@@ -19,7 +19,9 @@ type Config struct {
 
 	newBackOff BackOffFunc
 
-	consumeTimeout time.Duration
+	consumeTimeout time.Duration // time frame to wait for a new message.
+
+	maxIntake int // do not ingest more messages than this treshold.
 }
 
 func (c Config) validate() error {
