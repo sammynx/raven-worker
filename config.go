@@ -19,7 +19,7 @@ type Config struct {
 
 	newBackOff BackOffFunc
 
-	consumeTimeout time.Duration // time frame to wait for a new message.
+	consumeTimeout time.Duration // time frame to wait for a new message. Zero is no timeout.
 
 	maxIntake int // do not ingest more messages than this treshold.
 }

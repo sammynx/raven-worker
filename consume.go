@@ -37,6 +37,11 @@ var EmptyMessage = Message{}
 // blocks until it receives a message or 'consumeTimeout' expires.
 func (c *DefaultWorker) Consume(ctx context.Context) (Reference, error) {
 
+	// there is no timeout, we wait forever to get a reference.
+	if c.consumeTimeout == 0 {
+		return c.waitForWork(ctx)
+	}
+
 	ctxTimeout, cancel := context.WithTimeout(ctx, c.consumeTimeout)
 	defer cancel()
 

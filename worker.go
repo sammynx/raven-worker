@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
@@ -59,8 +58,6 @@ func New(opts ...OptionFunc) (Worker, error) {
 		newBackOff: func() backoff.BackOff {
 			return backoff.NewExponentialBackOff()
 		},
-
-		consumeTimeout: 60 * time.Second,
 	}
 
 	for _, optFn := range opts {

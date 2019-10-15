@@ -74,9 +74,15 @@ func WithBackOff(fn BackOffFunc) OptionFunc {
 }
 
 //WithConsumeTimeout time frame to wait for a new message.
-// if timeout expires the returned error is 'context.DeadlineExceeded'
+// not setting this equals wait forever.
 func WithConsumeTimeout(s string) OptionFunc {
 	return func(c *Config) error {
+		if s == "" {
+			// timeout not set, use its zero value.
+			c.consumeTimeout = 0
+			return nil
+		}
+
 		timeout, err := time.ParseDuration(s)
 		if err != nil {
 			return err
@@ -126,6 +132,8 @@ func DefaultEnvironment() OptionFunc {
 	} else {
 		opts = append(opts, optionFn)
 	}
+
+	opts = append(opts, WithConsumeTimeout(os.Getenv("CONSUME_TIMEOUT")))
 
 	return func(c *Config) error {
 		for _, optionFn := range opts {
