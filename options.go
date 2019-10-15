@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cenkalti/backoff"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 type OptionFunc func(*Config) error
@@ -71,6 +73,37 @@ func WithBackOff(fn BackOffFunc) OptionFunc {
 	}
 }
 
+//WithConsumeTimeout time frame to wait for a new message.
+// not setting this equals wait forever.
+func WithConsumeTimeout(s string) OptionFunc {
+	return func(c *Config) error {
+		if s == "" {
+			// timeout not set, use its zero value.
+			c.consumeTimeout = 0
+			return nil
+		}
+
+		timeout, err := time.ParseDuration(s)
+		if err != nil {
+			return err
+		}
+		c.consumeTimeout = timeout
+		return nil
+	}
+}
+
+//WithMaxIntake ingest messages until maxIntake is reached.
+func WithMaxIntake(num string) OptionFunc {
+	return func(c *Config) error {
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			return err
+		}
+		c.maxIntake = n
+		return nil
+	}
+}
+
 // errorFunc will pass the initialization error through
 func errorFunc(err error) OptionFunc {
 	return func(c *Config) error {
@@ -99,6 +132,8 @@ func DefaultEnvironment() OptionFunc {
 	} else {
 		opts = append(opts, optionFn)
 	}
+
+	opts = append(opts, WithConsumeTimeout(os.Getenv("CONSUME_TIMEOUT")))
 
 	return func(c *Config) error {
 		for _, optionFn := range opts {

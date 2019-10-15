@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/dutchsec/raven-worker/workflow"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"zombiezen.com/go/capnproto2/rpc"
 )
 
@@ -36,8 +36,8 @@ func MustWithWorkerID(workerID string) OptionFunc {
 }
 
 var (
-	flowID   = uuid.NewV4()
-	workerID = uuid.NewV4()
+	flowID, _   = uuid.NewV4()
+	workerID, _ = uuid.NewV4()
 )
 
 // important to know is that you
@@ -52,7 +52,7 @@ type workflowServer struct {
 	getJob         func(getJob workflow.Workflow_getJob) error
 	ackJob         func(ackJob workflow.Workflow_ackJob) error
 	putEvent       func(putEvent workflow.Workflow_putEvent) error
-	getLatestEvent func(getLatestEvent workflow.Workflow_getLatestEvent) error
+	getLatestEvent func(getLatestEvent workflow.Workflow_getLatestEventID) error
 }
 
 func (w *workflowServer) PutEvent(putEvent workflow.Workflow_putEvent) error {
@@ -61,6 +61,10 @@ func (w *workflowServer) PutEvent(putEvent workflow.Workflow_putEvent) error {
 	}
 
 	return fmt.Errorf("putEvent not configured")
+}
+
+func (w *workflowServer) PutNewEvent(e workflow.Workflow_putNewEvent) error {
+	return nil
 }
 
 func (w *workflowServer) AckJob(ackJob workflow.Workflow_ackJob) error {
@@ -79,7 +83,7 @@ func (w *workflowServer) GetJob(getJob workflow.Workflow_getJob) error {
 	return fmt.Errorf("getJob not configured")
 }
 
-func (w *workflowServer) GetLatestEvent(getLatestEvent workflow.Workflow_getLatestEvent) error {
+func (w *workflowServer) GetLatestEventID(getLatestEvent workflow.Workflow_getLatestEventID) error {
 	if w.getLatestEvent != nil {
 		return w.getLatestEvent(getLatestEvent)
 	}
@@ -93,6 +97,10 @@ func (w *workflowServer) GetEvent(getEvent workflow.Workflow_getEvent) error {
 	}
 
 	return fmt.Errorf("getEvent not configured")
+}
+
+func (w *workflowServer) GetEventAllVersions(e workflow.Workflow_getEventAllVersions) error {
+	return nil
 }
 
 func testServer(ws *workflowServer) (net.Listener, error) {

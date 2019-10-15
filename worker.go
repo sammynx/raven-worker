@@ -1,18 +1,18 @@
 package ravenworker
 
 import (
+	"context"
 	"net"
 	"sync"
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/labstack/gommon/log"
-	context "golang.org/x/net/context"
 	"zombiezen.com/go/capnproto2/rpc"
 )
 
 type Worker interface {
-	Consume() (Reference, error)
+	Consume(ctx context.Context) (Reference, error)
 	Get(Reference) (Message, error)
 	Ack(Reference, ...AckOptionFunc) error
 	Produce(Message) error
