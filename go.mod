@@ -6,7 +6,6 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/google/go-cmp v0.3.1
-	github.com/labstack/gommon v0.3.0
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
 	gitlab.com/z0mbie42/rz-go/v2 v2.8.0
