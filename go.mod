@@ -9,6 +9,7 @@ require (
 	github.com/labstack/gommon v0.3.0
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
+	gitlab.com/z0mbie42/rz-go/v2 v2.8.0
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	zombiezen.com/go/capnproto2 v2.17.0+incompatible
 )

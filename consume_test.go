@@ -35,6 +35,7 @@ func TestConsume(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {
@@ -88,6 +89,7 @@ func TestConsumeAck(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {
@@ -144,6 +146,7 @@ func TestConsumeAckWithContent(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {
@@ -201,6 +204,7 @@ func TestConsumeGet(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {
@@ -244,6 +248,7 @@ func TestBackOff(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
+		MustWithLogger(DefaultLogger),
 		WithConsumeTimeout("200ms"),
 		WithBackOff(func() backoff.BackOff {
 			cb := &backoff.ZeroBackOff{}
@@ -283,6 +288,7 @@ func TestConsumeTimeout(t *testing.T) {
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
 		WithConsumeTimeout("10ms"),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(func() backoff.BackOff {
 			return backoff.NewConstantBackOff(3 * time.Millisecond)
 		}),
@@ -317,6 +323,7 @@ func TestConsumeWithError(t *testing.T) {
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
 		WithConsumeTimeout("10ms"),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(func() backoff.BackOff {
 			return backoff.NewConstantBackOff(3 * time.Millisecond)
 		}),
@@ -353,6 +360,7 @@ func TestConsumeWithCancel(t *testing.T) {
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
 		WithConsumeTimeout("100ms"),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(func() backoff.BackOff {
 			return backoff.NewConstantBackOff(3 * time.Millisecond)
 		}),

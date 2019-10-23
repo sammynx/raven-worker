@@ -15,7 +15,7 @@ type Config struct {
 
 	FlowID uuid.UUID
 
-	l Logger
+	log Logger
 
 	newBackOff BackOffFunc
 

@@ -1,6 +1,12 @@
 package ravenworker
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"os"
+
+	"gitlab.com/z0mbie42/rz-go/v2"
+)
 
 type Logger interface {
 	Debugf(msg string, args ...interface{})
@@ -9,29 +15,46 @@ type Logger interface {
 	Fatalf(msg string, args ...interface{})
 }
 
-var DefaultLogger Logger = &defaultLogger{}
+var DefaultLogger Logger = NewDefaultLogger(os.Getenv("RAVEN_LOG"))
 
 type defaultLogger struct {
+	rz.Logger
+}
+
+//NewDefaultLogger creates a JSON logger which outputs to a Raven Fluentd endpoint.
+// If endpoint is not available it defaults to Stdout.
+func NewDefaultLogger(endpoint string) *defaultLogger {
+	var writer io.Writer = os.Stdout
+
+	if endpoint != "" {
+		// make this threadfsafe with a syncwriter.
+		writer = rz.SyncWriter(&LogUploader{endpoint: endpoint})
+	}
+
+	logger := rz.New(
+		rz.Fields(rz.Timestamp(true)),
+		rz.Writer(writer),
+	)
+
+	return &defaultLogger{Logger: logger}
 }
 
 // TODO: improving logging
 func (l *defaultLogger) Infof(msg string, args ...interface{}) {
-	fmt.Printf(msg, args...)
-	fmt.Println("")
+	l.Info(fmt.Sprintf(msg, args...))
 }
 
 // TODO: improving logging
 func (l *defaultLogger) Debugf(msg string, args ...interface{}) {
-	fmt.Printf(msg, args...)
-	fmt.Println("")
+	l.Debug(fmt.Sprintf(msg, args...))
 }
 
 // TODO: improving logging
 func (l *defaultLogger) Errorf(msg string, args ...interface{}) {
-	fmt.Printf(msg, args...)
-	fmt.Println("")
+	l.Error(fmt.Sprintf(msg, args...))
 }
 
 func (l *defaultLogger) Fatalf(msg string, args ...interface{}) {
-	panic(fmt.Sprintf(msg, args...))
+	//TODO (jerry 2019-10-23): Add stacktrace
+	l.Fatal(fmt.Sprintf(msg, args...))
 }
