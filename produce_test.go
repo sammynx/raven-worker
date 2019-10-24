@@ -74,6 +74,7 @@ func TestProduce(t *testing.T) {
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
+		MustWithLogger(DefaultLogger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {

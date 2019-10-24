@@ -59,7 +59,7 @@ func WithWorkerID(s string) (OptionFunc, error) {
 
 func WithLogger(l Logger) (OptionFunc, error) {
 	return func(c *Config) error {
-		c.l = l
+		c.log = l
 		return nil
 	}, nil
 }
@@ -78,8 +78,7 @@ func WithBackOff(fn BackOffFunc) OptionFunc {
 func WithConsumeTimeout(s string) OptionFunc {
 	return func(c *Config) error {
 		if s == "" {
-			// timeout not set, use its zero value.
-			c.consumeTimeout = 0
+			// timeout not set, use its default.
 			return nil
 		}
 
@@ -112,6 +111,7 @@ func errorFunc(err error) OptionFunc {
 }
 
 // DefaultEnvironment returns the optionFunc that expects 'RAVEN_URL', 'FLOW_ID' and 'WORKER_ID' as environmental variables
+// 'CONSUME_TIMEOUT' will override the default if set. DefaultLogger is set as the logger.
 func DefaultEnvironment() OptionFunc {
 	opts := []OptionFunc{}
 
@@ -128,6 +128,12 @@ func DefaultEnvironment() OptionFunc {
 	}
 
 	if optionFn, err := WithWorkerID(os.Getenv("WORKER_ID")); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
+
+	if optionFn, err := WithLogger(DefaultLogger); err != nil {
 		return errorFunc(err)
 	} else {
 		opts = append(opts, optionFn)

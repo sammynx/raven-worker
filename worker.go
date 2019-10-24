@@ -4,10 +4,10 @@ import (
 	"context"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
-	"github.com/labstack/gommon/log"
 	"zombiezen.com/go/capnproto2/rpc"
 )
 
@@ -33,7 +33,7 @@ func (w *DefaultWorker) connect() error {
 
 	u := w.urls[w.connectionCounter%len(w.urls)]
 
-	log.Infof("Connecting to rpc server: %s", u)
+	w.log.Infof("Connecting to rpc server: %s", u)
 
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
@@ -53,11 +53,10 @@ func (w *DefaultWorker) connect() error {
 // New returns a new configured Raven Worker client
 func New(opts ...OptionFunc) (Worker, error) {
 	c := Config{
-		l: DefaultLogger,
-
 		newBackOff: func() backoff.BackOff {
 			return backoff.NewExponentialBackOff()
 		},
+		consumeTimeout: 10 * time.Second,
 	}
 
 	for _, optFn := range opts {

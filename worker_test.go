@@ -35,6 +35,11 @@ func MustWithWorkerID(workerID string) OptionFunc {
 	return fn
 }
 
+func MustWithLogger(l Logger) OptionFunc {
+	fn, _ := WithLogger(l)
+	return fn
+}
+
 var (
 	flowID, _   = uuid.NewV4()
 	workerID, _ = uuid.NewV4()
