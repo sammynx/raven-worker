@@ -21,15 +21,22 @@ type defaultLogger struct {
 	rz.Logger
 }
 
+const loggerOK = "{\"logger ok.\"}"
+
 //NewDefaultLogger creates a JSON logger which outputs to a Raven Fluentd endpoint.
 // If endpoint is not available it defaults to Stdout.
 func NewDefaultLogger(endpoint string) *defaultLogger {
-	var writer io.Writer = os.Stdout
+	var w io.Writer = os.Stdout
 
-	if endpoint != "" {
-		// make this threadfsafe with a syncwriter.
-		writer = rz.SyncWriter(&LogUploader{endpoint: endpoint})
+	// check connection.
+	l := &LogUploader{endpoint: endpoint}
+	_, err := l.Write([]byte(loggerOK))
+	if err == nil {
+		w = l
 	}
+
+	// make this threadfsafe with a syncwriter.
+	writer := rz.SyncWriter(w)
 
 	logger := rz.New(
 		rz.Fields(rz.Timestamp(true)),

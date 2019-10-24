@@ -15,23 +15,19 @@ import (
 
 func TestNewDefaultLogger(t *testing.T) {
 
-	message := "testing..."
-
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			t.Fatalf("unexpected handler error: %v", err)
 		}
 
-		if !strings.Contains(string(buf), message) {
-			t.Fatalf("did not find message, %s, in output: %s", message, string(buf))
+		if !bytes.Contains(buf, []byte(loggerOK)) {
+			t.Fatalf("did not find message, %s, in output: %s", loggerOK, string(buf))
 		}
 	}))
 	defer ts.Close()
 
-	l := NewDefaultLogger(ts.URL)
-
-	l.Infof(message)
+	_ = NewDefaultLogger(ts.URL)
 }
 
 func TestLevelInfo(t *testing.T) {
