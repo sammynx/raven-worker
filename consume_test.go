@@ -31,11 +31,14 @@ func TestConsume(t *testing.T) {
 
 	defer srvr.Close()
 
+	logger := NewDefaultLogger("")
+
 	w, err := New(
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
-		MustWithLogger(DefaultLogger),
+		MustWithLogger(logger),
+		WithCloser(logger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {

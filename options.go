@@ -1,7 +1,9 @@
 package ravenworker
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
@@ -58,8 +60,17 @@ func WithWorkerID(s string) (OptionFunc, error) {
 }
 
 func WithLogger(l Logger) (OptionFunc, error) {
+	if l == nil {
+		return nil, errors.New("WithLogger called with <nil> logger")
+	}
+
 	return func(c *Config) error {
 		c.log = l
+
+		// use Close if available.
+		if deflog, ok := l.(io.Closer); ok {
+			c.closers = append(c.closers, deflog)
+		}
 		return nil
 	}, nil
 }
@@ -103,6 +114,14 @@ func WithMaxIntake(num string) OptionFunc {
 	}
 }
 
+//WithCloser adds an 'io.Closer' to the list.
+func WithCloser(closer io.Closer) OptionFunc {
+	return func(c *Config) error {
+		c.closers = append(c.closers, closer)
+		return nil
+	}
+}
+
 // errorFunc will pass the initialization error through
 func errorFunc(err error) OptionFunc {
 	return func(c *Config) error {
@@ -138,8 +157,6 @@ func DefaultEnvironment() OptionFunc {
 	} else {
 		opts = append(opts, optionFn)
 	}
-
-	opts = append(opts, WithConsumeTimeout(os.Getenv("CONSUME_TIMEOUT")))
 
 	return func(c *Config) error {
 		for _, optionFn := range opts {

@@ -16,6 +16,7 @@ type Worker interface {
 	Get(Reference) (Message, error)
 	Ack(Reference, ...AckOptionFunc) error
 	Produce(Message) error
+	Close() error
 }
 
 type DefaultWorker struct {
@@ -25,6 +26,13 @@ type DefaultWorker struct {
 	m sync.Mutex
 
 	connectionCounter int
+}
+
+func (w *DefaultWorker) Close() error {
+	for _, c := range w.closers {
+		c.Close()
+	}
+	return nil
 }
 
 func (w *DefaultWorker) connect() error {

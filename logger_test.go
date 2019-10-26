@@ -2,9 +2,6 @@ package ravenworker
 
 import (
 	"bytes"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"os/exec"
 	"strings"
@@ -15,19 +12,15 @@ import (
 
 func TestNewDefaultLogger(t *testing.T) {
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buf, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			t.Fatalf("unexpected handler error: %v", err)
-		}
+	deflog := NewDefaultLogger("test")
 
-		if !bytes.Contains(buf, []byte(loggerOK)) {
-			t.Fatalf("did not find message, %s, in output: %s", loggerOK, string(buf))
-		}
-	}))
-	defer ts.Close()
+	if deflog == nil {
+		t.Fatal("could not initialize defaultlogger. returned <nil>")
+	}
 
-	_ = NewDefaultLogger(ts.URL)
+	if deflog.upload == nil {
+		t.Fatal("could not initialize logUploader. returned <nil>")
+	}
 }
 
 func TestLevelInfo(t *testing.T) {

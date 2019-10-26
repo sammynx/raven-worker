@@ -2,10 +2,10 @@ package ravenworker
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"gitlab.com/z0mbie42/rz-go/v2"
+	context "golang.org/x/net/context"
 )
 
 type Logger interface {
@@ -15,35 +15,40 @@ type Logger interface {
 	Fatalf(msg string, args ...interface{})
 }
 
-var DefaultLogger Logger = NewDefaultLogger(os.Getenv("RAVEN_LOG"))
+var DefaultLogger = NewDefaultLogger(os.Getenv("RAVEN_LOG"))
 
 type defaultLogger struct {
 	rz.Logger
+
+	upload *logUploader // need this for closing the logger.
 }
 
-const loggerOK = "{\"logger ok.\"}"
-
-//NewDefaultLogger creates a JSON logger which outputs to a Raven Fluentd endpoint.
-// If endpoint is not available it defaults to Stdout.
+//NewDefaultLogger creates a JSON logger which outputs to an http endpoint.
+// provide an empty string as endpoint to log to stdout.
 func NewDefaultLogger(endpoint string) *defaultLogger {
-	var w io.Writer = os.Stdout
 
-	// check connection.
-	l := &LogUploader{endpoint: endpoint}
-	_, err := l.Write([]byte(loggerOK))
-	if err == nil {
-		w = l
+	if endpoint == "" {
+		return &defaultLogger{
+			Logger: rz.New(
+				rz.Fields(rz.Timestamp(true)),
+				rz.Writer(os.Stdout),
+			),
+		}
 	}
 
-	// make this threadfsafe with a syncwriter.
-	writer := rz.SyncWriter(w)
+	l := NewlogUploader(context.Background(), endpoint)
 
-	logger := rz.New(
-		rz.Fields(rz.Timestamp(true)),
-		rz.Writer(writer),
-	)
+	return &defaultLogger{
+		Logger: rz.New(
+			rz.Fields(rz.Timestamp(true)),
+			rz.Writer(l),
+		),
+		upload: l,
+	}
+}
 
-	return &defaultLogger{Logger: logger}
+func (l *defaultLogger) Close() error {
+	return l.upload.Close()
 }
 
 // TODO: improving logging

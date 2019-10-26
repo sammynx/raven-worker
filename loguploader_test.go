@@ -1,44 +1,75 @@
 package ravenworker
 
 import (
-	"fmt"
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	context "golang.org/x/net/context"
 )
 
+func TestNewClosePanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("got panic, %v", r)
+		}
+	}()
+
+	l := NewlogUploader(context.Background(), "")
+	l.Close()
+}
+
+func TestNewlogUploader(t *testing.T) {
+	tt := NewlogUploader(context.Background(), "test")
+
+	if tt.endpoint != "test" {
+		t.Errorf("endpoint not set: expected 'test', got '%s'", tt.endpoint)
+	}
+
+	if tt.cancel == nil {
+		t.Fatalf("cancel function not set")
+	}
+}
+
 func TestWrite(t *testing.T) {
+	l := &logUploader{}
+
+	tt := "test"
+
+	n, _ := l.Write([]byte(tt))
+
+	if n != len(tt) {
+		t.Fatalf("bad lenght of Write, want %d, got %d", len(tt), n)
+	}
+
+	if l.buf.String() != tt {
+		t.Fatalf("buffer write error, want %s, got %s", tt, l.buf.String())
+	}
+}
+
+func TestSend(t *testing.T) {
+	buf := &bytes.Buffer{}
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, client")
+		io.Copy(buf, r.Body)
 	}))
 	defer ts.Close()
 
-	uploader := &LogUploader{endpoint: ts.URL}
+	tt := NewlogUploader(context.Background(), ts.URL)
 
-	body := "Log Upload"
+	body := "uploaded"
 
-	n, err := uploader.Write([]byte(body))
+	_, err := tt.buf.Write([]byte(body))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if n != len(body) {
-		log.Fatalf("Bad number of bytes written, want %d, got %d", len(body), n)
-	}
-}
+	tt.Close()
 
-func TestWriteError(t *testing.T) {
-
-	uploader := &LogUploader{}
-
-	body := "Log Upload"
-
-	_, err := uploader.Write([]byte(body))
-
-	t.Log(err)
-
-	if err == nil {
-		log.Fatal("expected an error got none.")
+	if buf.String() != body {
+		t.Fatalf("did not send body. expected %s, got %s", body, buf.String())
 	}
 }
