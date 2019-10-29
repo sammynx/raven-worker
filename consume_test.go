@@ -31,7 +31,7 @@ func TestConsume(t *testing.T) {
 
 	defer srvr.Close()
 
-	logger := NewDefaultLogger("")
+	logger := NewDefaultLogger("", "")
 
 	w, err := New(
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),

@@ -12,7 +12,7 @@ import (
 
 func TestNewDefaultLogger(t *testing.T) {
 
-	deflog := NewDefaultLogger("test")
+	deflog := NewDefaultLogger("test", "123")
 
 	if deflog == nil {
 		t.Fatal("could not initialize defaultlogger. returned <nil>")

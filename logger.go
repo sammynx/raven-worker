@@ -15,7 +15,7 @@ type Logger interface {
 	Fatalf(msg string, args ...interface{})
 }
 
-var DefaultLogger = NewDefaultLogger(os.Getenv("RAVEN_LOG"))
+var DefaultLogger = NewDefaultLogger(os.Getenv("RAVEN_LOG"), os.Getenv("WORKER_ID"))
 
 type defaultLogger struct {
 	rz.Logger
@@ -25,24 +25,26 @@ type defaultLogger struct {
 
 //NewDefaultLogger creates a JSON logger which outputs to an http endpoint.
 // provide an empty string as endpoint to log to stdout.
-func NewDefaultLogger(endpoint string) *defaultLogger {
+func NewDefaultLogger(endpoint, id string) *defaultLogger {
+
+	logger := rz.New(
+		rz.Fields(rz.Timestamp(true), rz.String("worker-id", id)),
+	)
 
 	if endpoint == "" {
+		logger = logger.With(rz.Writer(rz.SyncWriter(os.Stdout)))
+
 		return &defaultLogger{
-			Logger: rz.New(
-				rz.Fields(rz.Timestamp(true)),
-				rz.Writer(os.Stdout),
-			),
+			Logger: logger,
 		}
 	}
 
 	l := NewlogUploader(context.Background(), endpoint)
 
+	logger = logger.With(rz.Writer(l))
+
 	return &defaultLogger{
-		Logger: rz.New(
-			rz.Fields(rz.Timestamp(true)),
-			rz.Writer(l),
-		),
+		Logger: logger,
 		upload: l,
 	}
 }
