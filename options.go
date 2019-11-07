@@ -1,7 +1,9 @@
 package ravenworker
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
@@ -58,8 +60,17 @@ func WithWorkerID(s string) (OptionFunc, error) {
 }
 
 func WithLogger(l Logger) (OptionFunc, error) {
+	if l == nil {
+		return nil, errors.New("WithLogger called with <nil> logger")
+	}
+
 	return func(c *Config) error {
-		c.l = l
+		c.log = l
+
+		// use Close if available.
+		if deflog, ok := l.(io.Closer); ok {
+			c.closers = append(c.closers, deflog)
+		}
 		return nil
 	}, nil
 }
@@ -78,8 +89,7 @@ func WithBackOff(fn BackOffFunc) OptionFunc {
 func WithConsumeTimeout(s string) OptionFunc {
 	return func(c *Config) error {
 		if s == "" {
-			// timeout not set, use its zero value.
-			c.consumeTimeout = 0
+			// timeout not set, use its default.
 			return nil
 		}
 
@@ -104,6 +114,14 @@ func WithMaxIntake(num string) OptionFunc {
 	}
 }
 
+//WithCloser adds an 'io.Closer' to the list.
+func WithCloser(closer io.Closer) OptionFunc {
+	return func(c *Config) error {
+		c.closers = append(c.closers, closer)
+		return nil
+	}
+}
+
 // errorFunc will pass the initialization error through
 func errorFunc(err error) OptionFunc {
 	return func(c *Config) error {
@@ -112,6 +130,7 @@ func errorFunc(err error) OptionFunc {
 }
 
 // DefaultEnvironment returns the optionFunc that expects 'RAVEN_URL', 'FLOW_ID' and 'WORKER_ID' as environmental variables
+// 'CONSUME_TIMEOUT' will override the default if set. DefaultLogger is set as the logger.
 func DefaultEnvironment() OptionFunc {
 	opts := []OptionFunc{}
 
@@ -133,7 +152,11 @@ func DefaultEnvironment() OptionFunc {
 		opts = append(opts, optionFn)
 	}
 
-	opts = append(opts, WithConsumeTimeout(os.Getenv("CONSUME_TIMEOUT")))
+	if optionFn, err := WithLogger(DefaultLogger); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
 
 	return func(c *Config) error {
 		for _, optionFn := range opts {

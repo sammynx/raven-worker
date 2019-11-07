@@ -2,6 +2,7 @@ package ravenworker
 
 import (
 	"errors"
+	"io"
 	"net/url"
 	"time"
 
@@ -15,13 +16,15 @@ type Config struct {
 
 	FlowID uuid.UUID
 
-	l Logger
+	log Logger
 
 	newBackOff BackOffFunc
 
 	consumeTimeout time.Duration // time frame to wait for a new message. Zero is no timeout.
 
 	maxIntake int // do not ingest more messages than this treshold.
+
+	closers []io.Closer
 }
 
 func (c Config) validate() error {
