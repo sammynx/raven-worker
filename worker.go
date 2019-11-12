@@ -77,7 +77,7 @@ func (w *DefaultWorker) connect() error {
 func New(opts ...OptionFunc) (Worker, error) {
 	c := Config{
 		newBackOff: func() backoff.BackOff {
-			return backoff.NewExponentialBackOff()
+			return backoff.WithMaxRetries(backoff.NewExponentialBackOff(), 5)
 		},
 		consumeTimeout: 10 * time.Second,
 	}
