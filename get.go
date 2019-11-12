@@ -60,7 +60,7 @@ func transformMeta(md workflow.Event_Metadata_List) []Metadata {
 func (c *DefaultWorker) get(ref Reference) (Message, error) {
 	eventID, _ := uuid.FromString(ref.EventID)
 
-	res, err := c.w.GetEvent(context.Background(), func(params workflow.Workflow_getEvent_Params) error {
+	res, err := c.w.GetEvent(context.Background(), func(params workflow.Connection_getEvent_Params) error {
 		return params.SetEventID(eventID.Bytes())
 	}).Struct()
 

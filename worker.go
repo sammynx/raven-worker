@@ -21,7 +21,8 @@ type Worker interface {
 type DefaultWorker struct {
 	Config
 
-	w *workflow.Workflow
+	w workflow.Connection
+
 	m sync.Mutex
 
 	connectionCounter int
@@ -44,7 +45,21 @@ func (w *DefaultWorker) connect() error {
 
 	client := rpcconn.Bootstrap(context.Background())
 
-	w.w = &workflow.Workflow{Client: client}
+	//TODO: workflowToServe?
+	wf := &workflow.Workflow{Client: client}
+	promise := wf.Connect(context.Background(), func(params workflow.Workflow_connect_Params) error {
+		if err := params.SetFlowID(w.FlowID.Bytes()); err != nil {
+			return err
+		}
+
+		if err := params.SetWorkerID(w.WorkerID.Bytes()); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	w.w = promise.Connection()
 
 	w.connectionCounter++
 	return err

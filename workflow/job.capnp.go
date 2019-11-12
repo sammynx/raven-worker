@@ -211,14 +211,1086 @@ func (p Event_Metadata_Promise) Struct() (Event_Metadata, error) {
 	return Event_Metadata{s}, err
 }
 
+type Queue struct{ capnp.Struct }
+
+// Queue_TypeID is the unique identifier for the type Queue.
+const Queue_TypeID = 0x8be40c5e90cff4cf
+
+func NewQueue(s *capnp.Segment) (Queue, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return Queue{st}, err
+}
+
+func NewRootQueue(s *capnp.Segment) (Queue, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return Queue{st}, err
+}
+
+func ReadRootQueue(msg *capnp.Message) (Queue, error) {
+	root, err := msg.RootPtr()
+	return Queue{root.Struct()}, err
+}
+
+func (s Queue) String() string {
+	str, _ := text.Marshal(0x8be40c5e90cff4cf, s.Struct)
+	return str
+}
+
+func (s Queue) WorkerId() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Queue) HasWorkerId() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Queue) SetWorkerId(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+func (s Queue) QueueSize() uint64 {
+	return s.Struct.Uint64(0)
+}
+
+func (s Queue) SetQueueSize(v uint64) {
+	s.Struct.SetUint64(0, v)
+}
+
+// Queue_List is a list of Queue.
+type Queue_List struct{ capnp.List }
+
+// NewQueue creates a new list of Queue.
+func NewQueue_List(s *capnp.Segment, sz int32) (Queue_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return Queue_List{l}, err
+}
+
+func (s Queue_List) At(i int) Queue { return Queue{s.List.Struct(i)} }
+
+func (s Queue_List) Set(i int, v Queue) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s Queue_List) String() string {
+	str, _ := text.MarshalList(0x8be40c5e90cff4cf, s.List)
+	return str
+}
+
+// Queue_Promise is a wrapper for a Queue promised by a client call.
+type Queue_Promise struct{ *capnp.Pipeline }
+
+func (p Queue_Promise) Struct() (Queue, error) {
+	s, err := p.Pipeline.Struct()
+	return Queue{s}, err
+}
+
+type Connection struct{ Client capnp.Client }
+
+// Connection_TypeID is the unique identifier for the type Connection.
+const Connection_TypeID = 0xfdce09f9d8aeb8ae
+
+func (c Connection) PutEvent(ctx context.Context, params func(Connection_putEvent_Params) error, opts ...capnp.CallOption) Connection_putEvent_Results_Promise {
+	if c.Client == nil {
+		return Connection_putEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      0,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "putEvent",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Connection_putEvent_Params{Struct: s}) }
+	}
+	return Connection_putEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Connection) PutNewEvent(ctx context.Context, params func(Connection_putNewEvent_Params) error, opts ...capnp.CallOption) Connection_putNewEvent_Results_Promise {
+	if c.Client == nil {
+		return Connection_putNewEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      1,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "putNewEvent",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Connection_putNewEvent_Params{Struct: s}) }
+	}
+	return Connection_putNewEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Connection) GetEvent(ctx context.Context, params func(Connection_getEvent_Params) error, opts ...capnp.CallOption) Connection_getEvent_Results_Promise {
+	if c.Client == nil {
+		return Connection_getEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      2,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "getEvent",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Connection_getEvent_Params{Struct: s}) }
+	}
+	return Connection_getEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Connection) GetJob(ctx context.Context, params func(Connection_getJob_Params) error, opts ...capnp.CallOption) Connection_getJob_Results_Promise {
+	if c.Client == nil {
+		return Connection_getJob_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      3,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "getJob",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Connection_getJob_Params{Struct: s}) }
+	}
+	return Connection_getJob_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Connection) AckJob(ctx context.Context, params func(Connection_ackJob_Params) error, opts ...capnp.CallOption) Connection_ackJob_Results_Promise {
+	if c.Client == nil {
+		return Connection_ackJob_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      4,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "ackJob",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Connection_ackJob_Params{Struct: s}) }
+	}
+	return Connection_ackJob_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+
+type Connection_Server interface {
+	PutEvent(Connection_putEvent) error
+
+	PutNewEvent(Connection_putNewEvent) error
+
+	GetEvent(Connection_getEvent) error
+
+	GetJob(Connection_getJob) error
+
+	AckJob(Connection_ackJob) error
+}
+
+func Connection_ServerToClient(s Connection_Server) Connection {
+	c, _ := s.(server.Closer)
+	return Connection{Client: server.New(Connection_Methods(nil, s), c)}
+}
+
+func Connection_Methods(methods []server.Method, s Connection_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 5)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      0,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "putEvent",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Connection_putEvent{c, opts, Connection_putEvent_Params{Struct: p}, Connection_putEvent_Results{Struct: r}}
+			return s.PutEvent(call)
+		},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 0},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      1,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "putNewEvent",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Connection_putNewEvent{c, opts, Connection_putNewEvent_Params{Struct: p}, Connection_putNewEvent_Results{Struct: r}}
+			return s.PutNewEvent(call)
+		},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      2,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "getEvent",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Connection_getEvent{c, opts, Connection_getEvent_Params{Struct: p}, Connection_getEvent_Results{Struct: r}}
+			return s.GetEvent(call)
+		},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      3,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "getJob",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Connection_getJob{c, opts, Connection_getJob_Params{Struct: p}, Connection_getJob_Results{Struct: r}}
+			return s.GetJob(call)
+		},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 2},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xfdce09f9d8aeb8ae,
+			MethodID:      4,
+			InterfaceName: "job.capnp:Connection",
+			MethodName:    "ackJob",
+		},
+		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
+			call := Connection_ackJob{c, opts, Connection_ackJob_Params{Struct: p}, Connection_ackJob_Results{Struct: r}}
+			return s.AckJob(call)
+		},
+		ResultsSize: capnp.ObjectSize{DataSize: 8, PointerCount: 0},
+	})
+
+	return methods
+}
+
+// Connection_putEvent holds the arguments for a server call to Connection.putEvent.
+type Connection_putEvent struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Connection_putEvent_Params
+	Results Connection_putEvent_Results
+}
+
+// Connection_putNewEvent holds the arguments for a server call to Connection.putNewEvent.
+type Connection_putNewEvent struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Connection_putNewEvent_Params
+	Results Connection_putNewEvent_Results
+}
+
+// Connection_getEvent holds the arguments for a server call to Connection.getEvent.
+type Connection_getEvent struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Connection_getEvent_Params
+	Results Connection_getEvent_Results
+}
+
+// Connection_getJob holds the arguments for a server call to Connection.getJob.
+type Connection_getJob struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Connection_getJob_Params
+	Results Connection_getJob_Results
+}
+
+// Connection_ackJob holds the arguments for a server call to Connection.ackJob.
+type Connection_ackJob struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Connection_ackJob_Params
+	Results Connection_ackJob_Results
+}
+
+type Connection_putEvent_Params struct{ capnp.Struct }
+
+// Connection_putEvent_Params_TypeID is the unique identifier for the type Connection_putEvent_Params.
+const Connection_putEvent_Params_TypeID = 0xde10a9cc0d72b72e
+
+func NewConnection_putEvent_Params(s *capnp.Segment) (Connection_putEvent_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Connection_putEvent_Params{st}, err
+}
+
+func NewRootConnection_putEvent_Params(s *capnp.Segment) (Connection_putEvent_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Connection_putEvent_Params{st}, err
+}
+
+func ReadRootConnection_putEvent_Params(msg *capnp.Message) (Connection_putEvent_Params, error) {
+	root, err := msg.RootPtr()
+	return Connection_putEvent_Params{root.Struct()}, err
+}
+
+func (s Connection_putEvent_Params) String() string {
+	str, _ := text.Marshal(0xde10a9cc0d72b72e, s.Struct)
+	return str
+}
+
+func (s Connection_putEvent_Params) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Connection_putEvent_Params) HasEventID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_putEvent_Params) SetEventID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+func (s Connection_putEvent_Params) Event() (Event, error) {
+	p, err := s.Struct.Ptr(1)
+	return Event{Struct: p.Struct()}, err
+}
+
+func (s Connection_putEvent_Params) HasEvent() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_putEvent_Params) SetEvent(v Event) error {
+	return s.Struct.SetPtr(1, v.Struct.ToPtr())
+}
+
+// NewEvent sets the event field to a newly
+// allocated Event struct, preferring placement in s's segment.
+func (s Connection_putEvent_Params) NewEvent() (Event, error) {
+	ss, err := NewEvent(s.Struct.Segment())
+	if err != nil {
+		return Event{}, err
+	}
+	err = s.Struct.SetPtr(1, ss.Struct.ToPtr())
+	return ss, err
+}
+
+// Connection_putEvent_Params_List is a list of Connection_putEvent_Params.
+type Connection_putEvent_Params_List struct{ capnp.List }
+
+// NewConnection_putEvent_Params creates a new list of Connection_putEvent_Params.
+func NewConnection_putEvent_Params_List(s *capnp.Segment, sz int32) (Connection_putEvent_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return Connection_putEvent_Params_List{l}, err
+}
+
+func (s Connection_putEvent_Params_List) At(i int) Connection_putEvent_Params {
+	return Connection_putEvent_Params{s.List.Struct(i)}
+}
+
+func (s Connection_putEvent_Params_List) Set(i int, v Connection_putEvent_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_putEvent_Params_List) String() string {
+	str, _ := text.MarshalList(0xde10a9cc0d72b72e, s.List)
+	return str
+}
+
+// Connection_putEvent_Params_Promise is a wrapper for a Connection_putEvent_Params promised by a client call.
+type Connection_putEvent_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_putEvent_Params_Promise) Struct() (Connection_putEvent_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_putEvent_Params{s}, err
+}
+
+func (p Connection_putEvent_Params_Promise) Event() Event_Promise {
+	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(1)}
+}
+
+type Connection_putEvent_Results struct{ capnp.Struct }
+
+// Connection_putEvent_Results_TypeID is the unique identifier for the type Connection_putEvent_Results.
+const Connection_putEvent_Results_TypeID = 0x88498a4904c5c24b
+
+func NewConnection_putEvent_Results(s *capnp.Segment) (Connection_putEvent_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return Connection_putEvent_Results{st}, err
+}
+
+func NewRootConnection_putEvent_Results(s *capnp.Segment) (Connection_putEvent_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return Connection_putEvent_Results{st}, err
+}
+
+func ReadRootConnection_putEvent_Results(msg *capnp.Message) (Connection_putEvent_Results, error) {
+	root, err := msg.RootPtr()
+	return Connection_putEvent_Results{root.Struct()}, err
+}
+
+func (s Connection_putEvent_Results) String() string {
+	str, _ := text.Marshal(0x88498a4904c5c24b, s.Struct)
+	return str
+}
+
+// Connection_putEvent_Results_List is a list of Connection_putEvent_Results.
+type Connection_putEvent_Results_List struct{ capnp.List }
+
+// NewConnection_putEvent_Results creates a new list of Connection_putEvent_Results.
+func NewConnection_putEvent_Results_List(s *capnp.Segment, sz int32) (Connection_putEvent_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return Connection_putEvent_Results_List{l}, err
+}
+
+func (s Connection_putEvent_Results_List) At(i int) Connection_putEvent_Results {
+	return Connection_putEvent_Results{s.List.Struct(i)}
+}
+
+func (s Connection_putEvent_Results_List) Set(i int, v Connection_putEvent_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_putEvent_Results_List) String() string {
+	str, _ := text.MarshalList(0x88498a4904c5c24b, s.List)
+	return str
+}
+
+// Connection_putEvent_Results_Promise is a wrapper for a Connection_putEvent_Results promised by a client call.
+type Connection_putEvent_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_putEvent_Results_Promise) Struct() (Connection_putEvent_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_putEvent_Results{s}, err
+}
+
+type Connection_putNewEvent_Params struct{ capnp.Struct }
+
+// Connection_putNewEvent_Params_TypeID is the unique identifier for the type Connection_putNewEvent_Params.
+const Connection_putNewEvent_Params_TypeID = 0xf6ca343646120f95
+
+func NewConnection_putNewEvent_Params(s *capnp.Segment) (Connection_putNewEvent_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_putNewEvent_Params{st}, err
+}
+
+func NewRootConnection_putNewEvent_Params(s *capnp.Segment) (Connection_putNewEvent_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_putNewEvent_Params{st}, err
+}
+
+func ReadRootConnection_putNewEvent_Params(msg *capnp.Message) (Connection_putNewEvent_Params, error) {
+	root, err := msg.RootPtr()
+	return Connection_putNewEvent_Params{root.Struct()}, err
+}
+
+func (s Connection_putNewEvent_Params) String() string {
+	str, _ := text.Marshal(0xf6ca343646120f95, s.Struct)
+	return str
+}
+
+func (s Connection_putNewEvent_Params) Event() (Event, error) {
+	p, err := s.Struct.Ptr(0)
+	return Event{Struct: p.Struct()}, err
+}
+
+func (s Connection_putNewEvent_Params) HasEvent() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_putNewEvent_Params) SetEvent(v Event) error {
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewEvent sets the event field to a newly
+// allocated Event struct, preferring placement in s's segment.
+func (s Connection_putNewEvent_Params) NewEvent() (Event, error) {
+	ss, err := NewEvent(s.Struct.Segment())
+	if err != nil {
+		return Event{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
+// Connection_putNewEvent_Params_List is a list of Connection_putNewEvent_Params.
+type Connection_putNewEvent_Params_List struct{ capnp.List }
+
+// NewConnection_putNewEvent_Params creates a new list of Connection_putNewEvent_Params.
+func NewConnection_putNewEvent_Params_List(s *capnp.Segment, sz int32) (Connection_putNewEvent_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Connection_putNewEvent_Params_List{l}, err
+}
+
+func (s Connection_putNewEvent_Params_List) At(i int) Connection_putNewEvent_Params {
+	return Connection_putNewEvent_Params{s.List.Struct(i)}
+}
+
+func (s Connection_putNewEvent_Params_List) Set(i int, v Connection_putNewEvent_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_putNewEvent_Params_List) String() string {
+	str, _ := text.MarshalList(0xf6ca343646120f95, s.List)
+	return str
+}
+
+// Connection_putNewEvent_Params_Promise is a wrapper for a Connection_putNewEvent_Params promised by a client call.
+type Connection_putNewEvent_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_putNewEvent_Params_Promise) Struct() (Connection_putNewEvent_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_putNewEvent_Params{s}, err
+}
+
+func (p Connection_putNewEvent_Params_Promise) Event() Event_Promise {
+	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+type Connection_putNewEvent_Results struct{ capnp.Struct }
+
+// Connection_putNewEvent_Results_TypeID is the unique identifier for the type Connection_putNewEvent_Results.
+const Connection_putNewEvent_Results_TypeID = 0xc9cfdb3e090d737d
+
+func NewConnection_putNewEvent_Results(s *capnp.Segment) (Connection_putNewEvent_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_putNewEvent_Results{st}, err
+}
+
+func NewRootConnection_putNewEvent_Results(s *capnp.Segment) (Connection_putNewEvent_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_putNewEvent_Results{st}, err
+}
+
+func ReadRootConnection_putNewEvent_Results(msg *capnp.Message) (Connection_putNewEvent_Results, error) {
+	root, err := msg.RootPtr()
+	return Connection_putNewEvent_Results{root.Struct()}, err
+}
+
+func (s Connection_putNewEvent_Results) String() string {
+	str, _ := text.Marshal(0xc9cfdb3e090d737d, s.Struct)
+	return str
+}
+
+func (s Connection_putNewEvent_Results) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Connection_putNewEvent_Results) HasEventID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_putNewEvent_Results) SetEventID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+// Connection_putNewEvent_Results_List is a list of Connection_putNewEvent_Results.
+type Connection_putNewEvent_Results_List struct{ capnp.List }
+
+// NewConnection_putNewEvent_Results creates a new list of Connection_putNewEvent_Results.
+func NewConnection_putNewEvent_Results_List(s *capnp.Segment, sz int32) (Connection_putNewEvent_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Connection_putNewEvent_Results_List{l}, err
+}
+
+func (s Connection_putNewEvent_Results_List) At(i int) Connection_putNewEvent_Results {
+	return Connection_putNewEvent_Results{s.List.Struct(i)}
+}
+
+func (s Connection_putNewEvent_Results_List) Set(i int, v Connection_putNewEvent_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_putNewEvent_Results_List) String() string {
+	str, _ := text.MarshalList(0xc9cfdb3e090d737d, s.List)
+	return str
+}
+
+// Connection_putNewEvent_Results_Promise is a wrapper for a Connection_putNewEvent_Results promised by a client call.
+type Connection_putNewEvent_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_putNewEvent_Results_Promise) Struct() (Connection_putNewEvent_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_putNewEvent_Results{s}, err
+}
+
+type Connection_getEvent_Params struct{ capnp.Struct }
+
+// Connection_getEvent_Params_TypeID is the unique identifier for the type Connection_getEvent_Params.
+const Connection_getEvent_Params_TypeID = 0x858fba217e5b6d0a
+
+func NewConnection_getEvent_Params(s *capnp.Segment) (Connection_getEvent_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_getEvent_Params{st}, err
+}
+
+func NewRootConnection_getEvent_Params(s *capnp.Segment) (Connection_getEvent_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_getEvent_Params{st}, err
+}
+
+func ReadRootConnection_getEvent_Params(msg *capnp.Message) (Connection_getEvent_Params, error) {
+	root, err := msg.RootPtr()
+	return Connection_getEvent_Params{root.Struct()}, err
+}
+
+func (s Connection_getEvent_Params) String() string {
+	str, _ := text.Marshal(0x858fba217e5b6d0a, s.Struct)
+	return str
+}
+
+func (s Connection_getEvent_Params) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Connection_getEvent_Params) HasEventID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_getEvent_Params) SetEventID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+// Connection_getEvent_Params_List is a list of Connection_getEvent_Params.
+type Connection_getEvent_Params_List struct{ capnp.List }
+
+// NewConnection_getEvent_Params creates a new list of Connection_getEvent_Params.
+func NewConnection_getEvent_Params_List(s *capnp.Segment, sz int32) (Connection_getEvent_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Connection_getEvent_Params_List{l}, err
+}
+
+func (s Connection_getEvent_Params_List) At(i int) Connection_getEvent_Params {
+	return Connection_getEvent_Params{s.List.Struct(i)}
+}
+
+func (s Connection_getEvent_Params_List) Set(i int, v Connection_getEvent_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_getEvent_Params_List) String() string {
+	str, _ := text.MarshalList(0x858fba217e5b6d0a, s.List)
+	return str
+}
+
+// Connection_getEvent_Params_Promise is a wrapper for a Connection_getEvent_Params promised by a client call.
+type Connection_getEvent_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_getEvent_Params_Promise) Struct() (Connection_getEvent_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_getEvent_Params{s}, err
+}
+
+type Connection_getEvent_Results struct{ capnp.Struct }
+
+// Connection_getEvent_Results_TypeID is the unique identifier for the type Connection_getEvent_Results.
+const Connection_getEvent_Results_TypeID = 0xe84cea99f5f10902
+
+func NewConnection_getEvent_Results(s *capnp.Segment) (Connection_getEvent_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_getEvent_Results{st}, err
+}
+
+func NewRootConnection_getEvent_Results(s *capnp.Segment) (Connection_getEvent_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Connection_getEvent_Results{st}, err
+}
+
+func ReadRootConnection_getEvent_Results(msg *capnp.Message) (Connection_getEvent_Results, error) {
+	root, err := msg.RootPtr()
+	return Connection_getEvent_Results{root.Struct()}, err
+}
+
+func (s Connection_getEvent_Results) String() string {
+	str, _ := text.Marshal(0xe84cea99f5f10902, s.Struct)
+	return str
+}
+
+func (s Connection_getEvent_Results) Event() (Event, error) {
+	p, err := s.Struct.Ptr(0)
+	return Event{Struct: p.Struct()}, err
+}
+
+func (s Connection_getEvent_Results) HasEvent() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_getEvent_Results) SetEvent(v Event) error {
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewEvent sets the event field to a newly
+// allocated Event struct, preferring placement in s's segment.
+func (s Connection_getEvent_Results) NewEvent() (Event, error) {
+	ss, err := NewEvent(s.Struct.Segment())
+	if err != nil {
+		return Event{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
+// Connection_getEvent_Results_List is a list of Connection_getEvent_Results.
+type Connection_getEvent_Results_List struct{ capnp.List }
+
+// NewConnection_getEvent_Results creates a new list of Connection_getEvent_Results.
+func NewConnection_getEvent_Results_List(s *capnp.Segment, sz int32) (Connection_getEvent_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Connection_getEvent_Results_List{l}, err
+}
+
+func (s Connection_getEvent_Results_List) At(i int) Connection_getEvent_Results {
+	return Connection_getEvent_Results{s.List.Struct(i)}
+}
+
+func (s Connection_getEvent_Results_List) Set(i int, v Connection_getEvent_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_getEvent_Results_List) String() string {
+	str, _ := text.MarshalList(0xe84cea99f5f10902, s.List)
+	return str
+}
+
+// Connection_getEvent_Results_Promise is a wrapper for a Connection_getEvent_Results promised by a client call.
+type Connection_getEvent_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_getEvent_Results_Promise) Struct() (Connection_getEvent_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_getEvent_Results{s}, err
+}
+
+func (p Connection_getEvent_Results_Promise) Event() Event_Promise {
+	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+type Connection_getJob_Params struct{ capnp.Struct }
+
+// Connection_getJob_Params_TypeID is the unique identifier for the type Connection_getJob_Params.
+const Connection_getJob_Params_TypeID = 0xea6a21a6e04621e8
+
+func NewConnection_getJob_Params(s *capnp.Segment) (Connection_getJob_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return Connection_getJob_Params{st}, err
+}
+
+func NewRootConnection_getJob_Params(s *capnp.Segment) (Connection_getJob_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return Connection_getJob_Params{st}, err
+}
+
+func ReadRootConnection_getJob_Params(msg *capnp.Message) (Connection_getJob_Params, error) {
+	root, err := msg.RootPtr()
+	return Connection_getJob_Params{root.Struct()}, err
+}
+
+func (s Connection_getJob_Params) String() string {
+	str, _ := text.Marshal(0xea6a21a6e04621e8, s.Struct)
+	return str
+}
+
+// Connection_getJob_Params_List is a list of Connection_getJob_Params.
+type Connection_getJob_Params_List struct{ capnp.List }
+
+// NewConnection_getJob_Params creates a new list of Connection_getJob_Params.
+func NewConnection_getJob_Params_List(s *capnp.Segment, sz int32) (Connection_getJob_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return Connection_getJob_Params_List{l}, err
+}
+
+func (s Connection_getJob_Params_List) At(i int) Connection_getJob_Params {
+	return Connection_getJob_Params{s.List.Struct(i)}
+}
+
+func (s Connection_getJob_Params_List) Set(i int, v Connection_getJob_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_getJob_Params_List) String() string {
+	str, _ := text.MarshalList(0xea6a21a6e04621e8, s.List)
+	return str
+}
+
+// Connection_getJob_Params_Promise is a wrapper for a Connection_getJob_Params promised by a client call.
+type Connection_getJob_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_getJob_Params_Promise) Struct() (Connection_getJob_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_getJob_Params{s}, err
+}
+
+type Connection_getJob_Results struct{ capnp.Struct }
+
+// Connection_getJob_Results_TypeID is the unique identifier for the type Connection_getJob_Results.
+const Connection_getJob_Results_TypeID = 0xafa27e7eec8d315d
+
+func NewConnection_getJob_Results(s *capnp.Segment) (Connection_getJob_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Connection_getJob_Results{st}, err
+}
+
+func NewRootConnection_getJob_Results(s *capnp.Segment) (Connection_getJob_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Connection_getJob_Results{st}, err
+}
+
+func ReadRootConnection_getJob_Results(msg *capnp.Message) (Connection_getJob_Results, error) {
+	root, err := msg.RootPtr()
+	return Connection_getJob_Results{root.Struct()}, err
+}
+
+func (s Connection_getJob_Results) String() string {
+	str, _ := text.Marshal(0xafa27e7eec8d315d, s.Struct)
+	return str
+}
+
+func (s Connection_getJob_Results) EventID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Connection_getJob_Results) HasEventID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_getJob_Results) SetEventID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+func (s Connection_getJob_Results) AckID() ([]byte, error) {
+	p, err := s.Struct.Ptr(1)
+	return []byte(p.Data()), err
+}
+
+func (s Connection_getJob_Results) HasAckID() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_getJob_Results) SetAckID(v []byte) error {
+	return s.Struct.SetData(1, v)
+}
+
+// Connection_getJob_Results_List is a list of Connection_getJob_Results.
+type Connection_getJob_Results_List struct{ capnp.List }
+
+// NewConnection_getJob_Results creates a new list of Connection_getJob_Results.
+func NewConnection_getJob_Results_List(s *capnp.Segment, sz int32) (Connection_getJob_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return Connection_getJob_Results_List{l}, err
+}
+
+func (s Connection_getJob_Results_List) At(i int) Connection_getJob_Results {
+	return Connection_getJob_Results{s.List.Struct(i)}
+}
+
+func (s Connection_getJob_Results_List) Set(i int, v Connection_getJob_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_getJob_Results_List) String() string {
+	str, _ := text.MarshalList(0xafa27e7eec8d315d, s.List)
+	return str
+}
+
+// Connection_getJob_Results_Promise is a wrapper for a Connection_getJob_Results promised by a client call.
+type Connection_getJob_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_getJob_Results_Promise) Struct() (Connection_getJob_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_getJob_Results{s}, err
+}
+
+type Connection_ackJob_Params struct{ capnp.Struct }
+
+// Connection_ackJob_Params_TypeID is the unique identifier for the type Connection_ackJob_Params.
+const Connection_ackJob_Params_TypeID = 0xbc929b168c2d35bc
+
+func NewConnection_ackJob_Params(s *capnp.Segment) (Connection_ackJob_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Connection_ackJob_Params{st}, err
+}
+
+func NewRootConnection_ackJob_Params(s *capnp.Segment) (Connection_ackJob_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Connection_ackJob_Params{st}, err
+}
+
+func ReadRootConnection_ackJob_Params(msg *capnp.Message) (Connection_ackJob_Params, error) {
+	root, err := msg.RootPtr()
+	return Connection_ackJob_Params{root.Struct()}, err
+}
+
+func (s Connection_ackJob_Params) String() string {
+	str, _ := text.Marshal(0xbc929b168c2d35bc, s.Struct)
+	return str
+}
+
+func (s Connection_ackJob_Params) Event() (Event, error) {
+	p, err := s.Struct.Ptr(0)
+	return Event{Struct: p.Struct()}, err
+}
+
+func (s Connection_ackJob_Params) HasEvent() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_ackJob_Params) SetEvent(v Event) error {
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewEvent sets the event field to a newly
+// allocated Event struct, preferring placement in s's segment.
+func (s Connection_ackJob_Params) NewEvent() (Event, error) {
+	ss, err := NewEvent(s.Struct.Segment())
+	if err != nil {
+		return Event{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
+func (s Connection_ackJob_Params) AckID() ([]byte, error) {
+	p, err := s.Struct.Ptr(1)
+	return []byte(p.Data()), err
+}
+
+func (s Connection_ackJob_Params) HasAckID() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s Connection_ackJob_Params) SetAckID(v []byte) error {
+	return s.Struct.SetData(1, v)
+}
+
+// Connection_ackJob_Params_List is a list of Connection_ackJob_Params.
+type Connection_ackJob_Params_List struct{ capnp.List }
+
+// NewConnection_ackJob_Params creates a new list of Connection_ackJob_Params.
+func NewConnection_ackJob_Params_List(s *capnp.Segment, sz int32) (Connection_ackJob_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return Connection_ackJob_Params_List{l}, err
+}
+
+func (s Connection_ackJob_Params_List) At(i int) Connection_ackJob_Params {
+	return Connection_ackJob_Params{s.List.Struct(i)}
+}
+
+func (s Connection_ackJob_Params_List) Set(i int, v Connection_ackJob_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_ackJob_Params_List) String() string {
+	str, _ := text.MarshalList(0xbc929b168c2d35bc, s.List)
+	return str
+}
+
+// Connection_ackJob_Params_Promise is a wrapper for a Connection_ackJob_Params promised by a client call.
+type Connection_ackJob_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_ackJob_Params_Promise) Struct() (Connection_ackJob_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_ackJob_Params{s}, err
+}
+
+func (p Connection_ackJob_Params_Promise) Event() Event_Promise {
+	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+type Connection_ackJob_Results struct{ capnp.Struct }
+
+// Connection_ackJob_Results_TypeID is the unique identifier for the type Connection_ackJob_Results.
+const Connection_ackJob_Results_TypeID = 0x9824c247770da692
+
+func NewConnection_ackJob_Results(s *capnp.Segment) (Connection_ackJob_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return Connection_ackJob_Results{st}, err
+}
+
+func NewRootConnection_ackJob_Results(s *capnp.Segment) (Connection_ackJob_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return Connection_ackJob_Results{st}, err
+}
+
+func ReadRootConnection_ackJob_Results(msg *capnp.Message) (Connection_ackJob_Results, error) {
+	root, err := msg.RootPtr()
+	return Connection_ackJob_Results{root.Struct()}, err
+}
+
+func (s Connection_ackJob_Results) String() string {
+	str, _ := text.Marshal(0x9824c247770da692, s.Struct)
+	return str
+}
+
+func (s Connection_ackJob_Results) Acked() bool {
+	return s.Struct.Bit(0)
+}
+
+func (s Connection_ackJob_Results) SetAcked(v bool) {
+	s.Struct.SetBit(0, v)
+}
+
+// Connection_ackJob_Results_List is a list of Connection_ackJob_Results.
+type Connection_ackJob_Results_List struct{ capnp.List }
+
+// NewConnection_ackJob_Results creates a new list of Connection_ackJob_Results.
+func NewConnection_ackJob_Results_List(s *capnp.Segment, sz int32) (Connection_ackJob_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
+	return Connection_ackJob_Results_List{l}, err
+}
+
+func (s Connection_ackJob_Results_List) At(i int) Connection_ackJob_Results {
+	return Connection_ackJob_Results{s.List.Struct(i)}
+}
+
+func (s Connection_ackJob_Results_List) Set(i int, v Connection_ackJob_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Connection_ackJob_Results_List) String() string {
+	str, _ := text.MarshalList(0x9824c247770da692, s.List)
+	return str
+}
+
+// Connection_ackJob_Results_Promise is a wrapper for a Connection_ackJob_Results promised by a client call.
+type Connection_ackJob_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Connection_ackJob_Results_Promise) Struct() (Connection_ackJob_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Connection_ackJob_Results{s}, err
+}
+
 type Workflow struct{ Client capnp.Client }
 
 // Workflow_TypeID is the unique identifier for the type Workflow.
 const Workflow_TypeID = 0xa35d193330adceaf
 
-func (c Workflow) PutEvent(ctx context.Context, params func(Workflow_putEvent_Params) error, opts ...capnp.CallOption) Workflow_putEvent_Results_Promise {
+func (c Workflow) Connect(ctx context.Context, params func(Workflow_connect_Params) error, opts ...capnp.CallOption) Workflow_connect_Results_Promise {
 	if c.Client == nil {
-		return Workflow_putEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+		return Workflow_connect_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
 	}
 	call := &capnp.Call{
 		Ctx: ctx,
@@ -226,55 +1298,15 @@ func (c Workflow) PutEvent(ctx context.Context, params func(Workflow_putEvent_Pa
 			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      0,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "putEvent",
+			MethodName:    "connect",
 		},
 		Options: capnp.NewCallOptions(opts),
 	}
 	if params != nil {
-		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
-		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_putEvent_Params{Struct: s}) }
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_connect_Params{Struct: s}) }
 	}
-	return Workflow_putEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
-}
-func (c Workflow) PutNewEvent(ctx context.Context, params func(Workflow_putNewEvent_Params) error, opts ...capnp.CallOption) Workflow_putNewEvent_Results_Promise {
-	if c.Client == nil {
-		return Workflow_putNewEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
-	}
-	call := &capnp.Call{
-		Ctx: ctx,
-		Method: capnp.Method{
-			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      1,
-			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "putNewEvent",
-		},
-		Options: capnp.NewCallOptions(opts),
-	}
-	if params != nil {
-		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 3}
-		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_putNewEvent_Params{Struct: s}) }
-	}
-	return Workflow_putNewEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
-}
-func (c Workflow) GetEvent(ctx context.Context, params func(Workflow_getEvent_Params) error, opts ...capnp.CallOption) Workflow_getEvent_Results_Promise {
-	if c.Client == nil {
-		return Workflow_getEvent_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
-	}
-	call := &capnp.Call{
-		Ctx: ctx,
-		Method: capnp.Method{
-			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      2,
-			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getEvent",
-		},
-		Options: capnp.NewCallOptions(opts),
-	}
-	if params != nil {
-		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getEvent_Params{Struct: s}) }
-	}
-	return Workflow_getEvent_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+	return Workflow_connect_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
 }
 func (c Workflow) GetEventAllVersions(ctx context.Context, params func(Workflow_getEventAllVersions_Params) error, opts ...capnp.CallOption) Workflow_getEventAllVersions_Results_Promise {
 	if c.Client == nil {
@@ -284,7 +1316,7 @@ func (c Workflow) GetEventAllVersions(ctx context.Context, params func(Workflow_
 		Ctx: ctx,
 		Method: capnp.Method{
 			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      3,
+			MethodID:      1,
 			InterfaceName: "job.capnp:Workflow",
 			MethodName:    "getEventAllVersions",
 		},
@@ -295,6 +1327,46 @@ func (c Workflow) GetEventAllVersions(ctx context.Context, params func(Workflow_
 		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getEventAllVersions_Params{Struct: s}) }
 	}
 	return Workflow_getEventAllVersions_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Workflow) GetQueue(ctx context.Context, params func(Workflow_getQueue_Params) error, opts ...capnp.CallOption) Workflow_getQueue_Results_Promise {
+	if c.Client == nil {
+		return Workflow_getQueue_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      2,
+			InterfaceName: "job.capnp:Workflow",
+			MethodName:    "getQueue",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getQueue_Params{Struct: s}) }
+	}
+	return Workflow_getQueue_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
+}
+func (c Workflow) GetQueues(ctx context.Context, params func(Workflow_getQueues_Params) error, opts ...capnp.CallOption) Workflow_getQueues_Results_Promise {
+	if c.Client == nil {
+		return Workflow_getQueues_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
+	}
+	call := &capnp.Call{
+		Ctx: ctx,
+		Method: capnp.Method{
+			InterfaceID:   0xa35d193330adceaf,
+			MethodID:      3,
+			InterfaceName: "job.capnp:Workflow",
+			MethodName:    "getQueues",
+		},
+		Options: capnp.NewCallOptions(opts),
+	}
+	if params != nil {
+		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getQueues_Params{Struct: s}) }
+	}
+	return Workflow_getQueues_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
 }
 func (c Workflow) GetLatestEventID(ctx context.Context, params func(Workflow_getLatestEventID_Params) error, opts ...capnp.CallOption) Workflow_getLatestEventID_Results_Promise {
 	if c.Client == nil {
@@ -316,61 +1388,17 @@ func (c Workflow) GetLatestEventID(ctx context.Context, params func(Workflow_get
 	}
 	return Workflow_getLatestEventID_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
 }
-func (c Workflow) GetJob(ctx context.Context, params func(Workflow_getJob_Params) error, opts ...capnp.CallOption) Workflow_getJob_Results_Promise {
-	if c.Client == nil {
-		return Workflow_getJob_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
-	}
-	call := &capnp.Call{
-		Ctx: ctx,
-		Method: capnp.Method{
-			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      5,
-			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getJob",
-		},
-		Options: capnp.NewCallOptions(opts),
-	}
-	if params != nil {
-		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_getJob_Params{Struct: s}) }
-	}
-	return Workflow_getJob_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
-}
-func (c Workflow) AckJob(ctx context.Context, params func(Workflow_ackJob_Params) error, opts ...capnp.CallOption) Workflow_ackJob_Results_Promise {
-	if c.Client == nil {
-		return Workflow_ackJob_Results_Promise{Pipeline: capnp.NewPipeline(capnp.ErrorAnswer(capnp.ErrNullClient))}
-	}
-	call := &capnp.Call{
-		Ctx: ctx,
-		Method: capnp.Method{
-			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      6,
-			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "ackJob",
-		},
-		Options: capnp.NewCallOptions(opts),
-	}
-	if params != nil {
-		call.ParamsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		call.ParamsFunc = func(s capnp.Struct) error { return params(Workflow_ackJob_Params{Struct: s}) }
-	}
-	return Workflow_ackJob_Results_Promise{Pipeline: capnp.NewPipeline(c.Client.Call(call))}
-}
 
 type Workflow_Server interface {
-	PutEvent(Workflow_putEvent) error
-
-	PutNewEvent(Workflow_putNewEvent) error
-
-	GetEvent(Workflow_getEvent) error
+	Connect(Workflow_connect) error
 
 	GetEventAllVersions(Workflow_getEventAllVersions) error
 
+	GetQueue(Workflow_getQueue) error
+
+	GetQueues(Workflow_getQueues) error
+
 	GetLatestEventID(Workflow_getLatestEventID) error
-
-	GetJob(Workflow_getJob) error
-
-	AckJob(Workflow_ackJob) error
 }
 
 func Workflow_ServerToClient(s Workflow_Server) Workflow {
@@ -380,7 +1408,7 @@ func Workflow_ServerToClient(s Workflow_Server) Workflow {
 
 func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 7)
+		methods = make([]server.Method, 0, 5)
 	}
 
 	methods = append(methods, server.Method{
@@ -388,13 +1416,13 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      0,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "putEvent",
+			MethodName:    "connect",
 		},
 		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_putEvent{c, opts, Workflow_putEvent_Params{Struct: p}, Workflow_putEvent_Results{Struct: r}}
-			return s.PutEvent(call)
+			call := Workflow_connect{c, opts, Workflow_connect_Params{Struct: p}, Workflow_connect_Results{Struct: r}}
+			return s.Connect(call)
 		},
-		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 0},
+		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
 
 	methods = append(methods, server.Method{
@@ -402,11 +1430,11 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      1,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "putNewEvent",
+			MethodName:    "getEventAllVersions",
 		},
 		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_putNewEvent{c, opts, Workflow_putNewEvent_Params{Struct: p}, Workflow_putNewEvent_Results{Struct: r}}
-			return s.PutNewEvent(call)
+			call := Workflow_getEventAllVersions{c, opts, Workflow_getEventAllVersions_Params{Struct: p}, Workflow_getEventAllVersions_Results{Struct: r}}
+			return s.GetEventAllVersions(call)
 		},
 		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
@@ -416,11 +1444,11 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      2,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getEvent",
+			MethodName:    "getQueue",
 		},
 		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_getEvent{c, opts, Workflow_getEvent_Params{Struct: p}, Workflow_getEvent_Results{Struct: r}}
-			return s.GetEvent(call)
+			call := Workflow_getQueue{c, opts, Workflow_getQueue_Params{Struct: p}, Workflow_getQueue_Results{Struct: r}}
+			return s.GetQueue(call)
 		},
 		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
@@ -430,11 +1458,11 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 			InterfaceID:   0xa35d193330adceaf,
 			MethodID:      3,
 			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getEventAllVersions",
+			MethodName:    "getQueues",
 		},
 		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_getEventAllVersions{c, opts, Workflow_getEventAllVersions_Params{Struct: p}, Workflow_getEventAllVersions_Results{Struct: r}}
-			return s.GetEventAllVersions(call)
+			call := Workflow_getQueues{c, opts, Workflow_getQueues_Params{Struct: p}, Workflow_getQueues_Results{Struct: r}}
+			return s.GetQueues(call)
 		},
 		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
@@ -453,59 +1481,15 @@ func Workflow_Methods(methods []server.Method, s Workflow_Server) []server.Metho
 		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 1},
 	})
 
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      5,
-			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "getJob",
-		},
-		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_getJob{c, opts, Workflow_getJob_Params{Struct: p}, Workflow_getJob_Results{Struct: r}}
-			return s.GetJob(call)
-		},
-		ResultsSize: capnp.ObjectSize{DataSize: 0, PointerCount: 3},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xa35d193330adceaf,
-			MethodID:      6,
-			InterfaceName: "job.capnp:Workflow",
-			MethodName:    "ackJob",
-		},
-		Impl: func(c context.Context, opts capnp.CallOptions, p, r capnp.Struct) error {
-			call := Workflow_ackJob{c, opts, Workflow_ackJob_Params{Struct: p}, Workflow_ackJob_Results{Struct: r}}
-			return s.AckJob(call)
-		},
-		ResultsSize: capnp.ObjectSize{DataSize: 8, PointerCount: 0},
-	})
-
 	return methods
 }
 
-// Workflow_putEvent holds the arguments for a server call to Workflow.putEvent.
-type Workflow_putEvent struct {
+// Workflow_connect holds the arguments for a server call to Workflow.connect.
+type Workflow_connect struct {
 	Ctx     context.Context
 	Options capnp.CallOptions
-	Params  Workflow_putEvent_Params
-	Results Workflow_putEvent_Results
-}
-
-// Workflow_putNewEvent holds the arguments for a server call to Workflow.putNewEvent.
-type Workflow_putNewEvent struct {
-	Ctx     context.Context
-	Options capnp.CallOptions
-	Params  Workflow_putNewEvent_Params
-	Results Workflow_putNewEvent_Results
-}
-
-// Workflow_getEvent holds the arguments for a server call to Workflow.getEvent.
-type Workflow_getEvent struct {
-	Ctx     context.Context
-	Options capnp.CallOptions
-	Params  Workflow_getEvent_Params
-	Results Workflow_getEvent_Results
+	Params  Workflow_connect_Params
+	Results Workflow_connect_Results
 }
 
 // Workflow_getEventAllVersions holds the arguments for a server call to Workflow.getEventAllVersions.
@@ -516,6 +1500,22 @@ type Workflow_getEventAllVersions struct {
 	Results Workflow_getEventAllVersions_Results
 }
 
+// Workflow_getQueue holds the arguments for a server call to Workflow.getQueue.
+type Workflow_getQueue struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Workflow_getQueue_Params
+	Results Workflow_getQueue_Results
+}
+
+// Workflow_getQueues holds the arguments for a server call to Workflow.getQueues.
+type Workflow_getQueues struct {
+	Ctx     context.Context
+	Options capnp.CallOptions
+	Params  Workflow_getQueues_Params
+	Results Workflow_getQueues_Results
+}
+
 // Workflow_getLatestEventID holds the arguments for a server call to Workflow.getLatestEventID.
 type Workflow_getLatestEventID struct {
 	Ctx     context.Context
@@ -524,541 +1524,171 @@ type Workflow_getLatestEventID struct {
 	Results Workflow_getLatestEventID_Results
 }
 
-// Workflow_getJob holds the arguments for a server call to Workflow.getJob.
-type Workflow_getJob struct {
-	Ctx     context.Context
-	Options capnp.CallOptions
-	Params  Workflow_getJob_Params
-	Results Workflow_getJob_Results
+type Workflow_connect_Params struct{ capnp.Struct }
+
+// Workflow_connect_Params_TypeID is the unique identifier for the type Workflow_connect_Params.
+const Workflow_connect_Params_TypeID = 0xfb7429c9d23d519b
+
+func NewWorkflow_connect_Params(s *capnp.Segment) (Workflow_connect_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Workflow_connect_Params{st}, err
 }
 
-// Workflow_ackJob holds the arguments for a server call to Workflow.ackJob.
-type Workflow_ackJob struct {
-	Ctx     context.Context
-	Options capnp.CallOptions
-	Params  Workflow_ackJob_Params
-	Results Workflow_ackJob_Results
+func NewRootWorkflow_connect_Params(s *capnp.Segment) (Workflow_connect_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return Workflow_connect_Params{st}, err
 }
 
-type Workflow_putEvent_Params struct{ capnp.Struct }
-
-// Workflow_putEvent_Params_TypeID is the unique identifier for the type Workflow_putEvent_Params.
-const Workflow_putEvent_Params_TypeID = 0xfb7429c9d23d519b
-
-func NewWorkflow_putEvent_Params(s *capnp.Segment) (Workflow_putEvent_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return Workflow_putEvent_Params{st}, err
-}
-
-func NewRootWorkflow_putEvent_Params(s *capnp.Segment) (Workflow_putEvent_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return Workflow_putEvent_Params{st}, err
-}
-
-func ReadRootWorkflow_putEvent_Params(msg *capnp.Message) (Workflow_putEvent_Params, error) {
+func ReadRootWorkflow_connect_Params(msg *capnp.Message) (Workflow_connect_Params, error) {
 	root, err := msg.RootPtr()
-	return Workflow_putEvent_Params{root.Struct()}, err
+	return Workflow_connect_Params{root.Struct()}, err
 }
 
-func (s Workflow_putEvent_Params) String() string {
+func (s Workflow_connect_Params) String() string {
 	str, _ := text.Marshal(0xfb7429c9d23d519b, s.Struct)
 	return str
 }
 
-func (s Workflow_putEvent_Params) FlowID() ([]byte, error) {
+func (s Workflow_connect_Params) FlowID() ([]byte, error) {
 	p, err := s.Struct.Ptr(0)
 	return []byte(p.Data()), err
 }
 
-func (s Workflow_putEvent_Params) HasFlowID() bool {
+func (s Workflow_connect_Params) HasFlowID() bool {
 	p, err := s.Struct.Ptr(0)
 	return p.IsValid() || err != nil
 }
 
-func (s Workflow_putEvent_Params) SetFlowID(v []byte) error {
+func (s Workflow_connect_Params) SetFlowID(v []byte) error {
 	return s.Struct.SetData(0, v)
 }
 
-func (s Workflow_putEvent_Params) WorkerID() ([]byte, error) {
+func (s Workflow_connect_Params) WorkerID() ([]byte, error) {
 	p, err := s.Struct.Ptr(1)
 	return []byte(p.Data()), err
 }
 
-func (s Workflow_putEvent_Params) HasWorkerID() bool {
+func (s Workflow_connect_Params) HasWorkerID() bool {
 	p, err := s.Struct.Ptr(1)
 	return p.IsValid() || err != nil
 }
 
-func (s Workflow_putEvent_Params) SetWorkerID(v []byte) error {
+func (s Workflow_connect_Params) SetWorkerID(v []byte) error {
 	return s.Struct.SetData(1, v)
 }
 
-func (s Workflow_putEvent_Params) EventID() ([]byte, error) {
-	p, err := s.Struct.Ptr(2)
-	return []byte(p.Data()), err
+// Workflow_connect_Params_List is a list of Workflow_connect_Params.
+type Workflow_connect_Params_List struct{ capnp.List }
+
+// NewWorkflow_connect_Params creates a new list of Workflow_connect_Params.
+func NewWorkflow_connect_Params_List(s *capnp.Segment, sz int32) (Workflow_connect_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return Workflow_connect_Params_List{l}, err
 }
 
-func (s Workflow_putEvent_Params) HasEventID() bool {
-	p, err := s.Struct.Ptr(2)
-	return p.IsValid() || err != nil
+func (s Workflow_connect_Params_List) At(i int) Workflow_connect_Params {
+	return Workflow_connect_Params{s.List.Struct(i)}
 }
 
-func (s Workflow_putEvent_Params) SetEventID(v []byte) error {
-	return s.Struct.SetData(2, v)
-}
-
-func (s Workflow_putEvent_Params) Event() (Event, error) {
-	p, err := s.Struct.Ptr(3)
-	return Event{Struct: p.Struct()}, err
-}
-
-func (s Workflow_putEvent_Params) HasEvent() bool {
-	p, err := s.Struct.Ptr(3)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_putEvent_Params) SetEvent(v Event) error {
-	return s.Struct.SetPtr(3, v.Struct.ToPtr())
-}
-
-// NewEvent sets the event field to a newly
-// allocated Event struct, preferring placement in s's segment.
-func (s Workflow_putEvent_Params) NewEvent() (Event, error) {
-	ss, err := NewEvent(s.Struct.Segment())
-	if err != nil {
-		return Event{}, err
-	}
-	err = s.Struct.SetPtr(3, ss.Struct.ToPtr())
-	return ss, err
-}
-
-// Workflow_putEvent_Params_List is a list of Workflow_putEvent_Params.
-type Workflow_putEvent_Params_List struct{ capnp.List }
-
-// NewWorkflow_putEvent_Params creates a new list of Workflow_putEvent_Params.
-func NewWorkflow_putEvent_Params_List(s *capnp.Segment, sz int32) (Workflow_putEvent_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
-	return Workflow_putEvent_Params_List{l}, err
-}
-
-func (s Workflow_putEvent_Params_List) At(i int) Workflow_putEvent_Params {
-	return Workflow_putEvent_Params{s.List.Struct(i)}
-}
-
-func (s Workflow_putEvent_Params_List) Set(i int, v Workflow_putEvent_Params) error {
+func (s Workflow_connect_Params_List) Set(i int, v Workflow_connect_Params) error {
 	return s.List.SetStruct(i, v.Struct)
 }
 
-func (s Workflow_putEvent_Params_List) String() string {
+func (s Workflow_connect_Params_List) String() string {
 	str, _ := text.MarshalList(0xfb7429c9d23d519b, s.List)
 	return str
 }
 
-// Workflow_putEvent_Params_Promise is a wrapper for a Workflow_putEvent_Params promised by a client call.
-type Workflow_putEvent_Params_Promise struct{ *capnp.Pipeline }
+// Workflow_connect_Params_Promise is a wrapper for a Workflow_connect_Params promised by a client call.
+type Workflow_connect_Params_Promise struct{ *capnp.Pipeline }
 
-func (p Workflow_putEvent_Params_Promise) Struct() (Workflow_putEvent_Params, error) {
+func (p Workflow_connect_Params_Promise) Struct() (Workflow_connect_Params, error) {
 	s, err := p.Pipeline.Struct()
-	return Workflow_putEvent_Params{s}, err
+	return Workflow_connect_Params{s}, err
 }
 
-func (p Workflow_putEvent_Params_Promise) Event() Event_Promise {
-	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(3)}
+type Workflow_connect_Results struct{ capnp.Struct }
+
+// Workflow_connect_Results_TypeID is the unique identifier for the type Workflow_connect_Results.
+const Workflow_connect_Results_TypeID = 0x8bcafe9abfa2fdc5
+
+func NewWorkflow_connect_Results(s *capnp.Segment) (Workflow_connect_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_connect_Results{st}, err
 }
 
-type Workflow_putEvent_Results struct{ capnp.Struct }
-
-// Workflow_putEvent_Results_TypeID is the unique identifier for the type Workflow_putEvent_Results.
-const Workflow_putEvent_Results_TypeID = 0x8bcafe9abfa2fdc5
-
-func NewWorkflow_putEvent_Results(s *capnp.Segment) (Workflow_putEvent_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return Workflow_putEvent_Results{st}, err
+func NewRootWorkflow_connect_Results(s *capnp.Segment) (Workflow_connect_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_connect_Results{st}, err
 }
 
-func NewRootWorkflow_putEvent_Results(s *capnp.Segment) (Workflow_putEvent_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return Workflow_putEvent_Results{st}, err
-}
-
-func ReadRootWorkflow_putEvent_Results(msg *capnp.Message) (Workflow_putEvent_Results, error) {
+func ReadRootWorkflow_connect_Results(msg *capnp.Message) (Workflow_connect_Results, error) {
 	root, err := msg.RootPtr()
-	return Workflow_putEvent_Results{root.Struct()}, err
+	return Workflow_connect_Results{root.Struct()}, err
 }
 
-func (s Workflow_putEvent_Results) String() string {
+func (s Workflow_connect_Results) String() string {
 	str, _ := text.Marshal(0x8bcafe9abfa2fdc5, s.Struct)
 	return str
 }
 
-// Workflow_putEvent_Results_List is a list of Workflow_putEvent_Results.
-type Workflow_putEvent_Results_List struct{ capnp.List }
-
-// NewWorkflow_putEvent_Results creates a new list of Workflow_putEvent_Results.
-func NewWorkflow_putEvent_Results_List(s *capnp.Segment, sz int32) (Workflow_putEvent_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return Workflow_putEvent_Results_List{l}, err
+func (s Workflow_connect_Results) Connection() Connection {
+	p, _ := s.Struct.Ptr(0)
+	return Connection{Client: p.Interface().Client()}
 }
 
-func (s Workflow_putEvent_Results_List) At(i int) Workflow_putEvent_Results {
-	return Workflow_putEvent_Results{s.List.Struct(i)}
+func (s Workflow_connect_Results) HasConnection() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
 }
 
-func (s Workflow_putEvent_Results_List) Set(i int, v Workflow_putEvent_Results) error {
+func (s Workflow_connect_Results) SetConnection(v Connection) error {
+	if v.Client == nil {
+		return s.Struct.SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(v.Client))
+	return s.Struct.SetPtr(0, in.ToPtr())
+}
+
+// Workflow_connect_Results_List is a list of Workflow_connect_Results.
+type Workflow_connect_Results_List struct{ capnp.List }
+
+// NewWorkflow_connect_Results creates a new list of Workflow_connect_Results.
+func NewWorkflow_connect_Results_List(s *capnp.Segment, sz int32) (Workflow_connect_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_connect_Results_List{l}, err
+}
+
+func (s Workflow_connect_Results_List) At(i int) Workflow_connect_Results {
+	return Workflow_connect_Results{s.List.Struct(i)}
+}
+
+func (s Workflow_connect_Results_List) Set(i int, v Workflow_connect_Results) error {
 	return s.List.SetStruct(i, v.Struct)
 }
 
-func (s Workflow_putEvent_Results_List) String() string {
+func (s Workflow_connect_Results_List) String() string {
 	str, _ := text.MarshalList(0x8bcafe9abfa2fdc5, s.List)
 	return str
 }
 
-// Workflow_putEvent_Results_Promise is a wrapper for a Workflow_putEvent_Results promised by a client call.
-type Workflow_putEvent_Results_Promise struct{ *capnp.Pipeline }
+// Workflow_connect_Results_Promise is a wrapper for a Workflow_connect_Results promised by a client call.
+type Workflow_connect_Results_Promise struct{ *capnp.Pipeline }
 
-func (p Workflow_putEvent_Results_Promise) Struct() (Workflow_putEvent_Results, error) {
+func (p Workflow_connect_Results_Promise) Struct() (Workflow_connect_Results, error) {
 	s, err := p.Pipeline.Struct()
-	return Workflow_putEvent_Results{s}, err
+	return Workflow_connect_Results{s}, err
 }
 
-type Workflow_putNewEvent_Params struct{ capnp.Struct }
-
-// Workflow_putNewEvent_Params_TypeID is the unique identifier for the type Workflow_putNewEvent_Params.
-const Workflow_putNewEvent_Params_TypeID = 0x8c160cee2c28c32f
-
-func NewWorkflow_putNewEvent_Params(s *capnp.Segment) (Workflow_putNewEvent_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return Workflow_putNewEvent_Params{st}, err
-}
-
-func NewRootWorkflow_putNewEvent_Params(s *capnp.Segment) (Workflow_putNewEvent_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return Workflow_putNewEvent_Params{st}, err
-}
-
-func ReadRootWorkflow_putNewEvent_Params(msg *capnp.Message) (Workflow_putNewEvent_Params, error) {
-	root, err := msg.RootPtr()
-	return Workflow_putNewEvent_Params{root.Struct()}, err
-}
-
-func (s Workflow_putNewEvent_Params) String() string {
-	str, _ := text.Marshal(0x8c160cee2c28c32f, s.Struct)
-	return str
-}
-
-func (s Workflow_putNewEvent_Params) FlowID() ([]byte, error) {
-	p, err := s.Struct.Ptr(0)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_putNewEvent_Params) HasFlowID() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_putNewEvent_Params) SetFlowID(v []byte) error {
-	return s.Struct.SetData(0, v)
-}
-
-func (s Workflow_putNewEvent_Params) WorkerID() ([]byte, error) {
-	p, err := s.Struct.Ptr(1)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_putNewEvent_Params) HasWorkerID() bool {
-	p, err := s.Struct.Ptr(1)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_putNewEvent_Params) SetWorkerID(v []byte) error {
-	return s.Struct.SetData(1, v)
-}
-
-func (s Workflow_putNewEvent_Params) Event() (Event, error) {
-	p, err := s.Struct.Ptr(2)
-	return Event{Struct: p.Struct()}, err
-}
-
-func (s Workflow_putNewEvent_Params) HasEvent() bool {
-	p, err := s.Struct.Ptr(2)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_putNewEvent_Params) SetEvent(v Event) error {
-	return s.Struct.SetPtr(2, v.Struct.ToPtr())
-}
-
-// NewEvent sets the event field to a newly
-// allocated Event struct, preferring placement in s's segment.
-func (s Workflow_putNewEvent_Params) NewEvent() (Event, error) {
-	ss, err := NewEvent(s.Struct.Segment())
-	if err != nil {
-		return Event{}, err
-	}
-	err = s.Struct.SetPtr(2, ss.Struct.ToPtr())
-	return ss, err
-}
-
-// Workflow_putNewEvent_Params_List is a list of Workflow_putNewEvent_Params.
-type Workflow_putNewEvent_Params_List struct{ capnp.List }
-
-// NewWorkflow_putNewEvent_Params creates a new list of Workflow_putNewEvent_Params.
-func NewWorkflow_putNewEvent_Params_List(s *capnp.Segment, sz int32) (Workflow_putNewEvent_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
-	return Workflow_putNewEvent_Params_List{l}, err
-}
-
-func (s Workflow_putNewEvent_Params_List) At(i int) Workflow_putNewEvent_Params {
-	return Workflow_putNewEvent_Params{s.List.Struct(i)}
-}
-
-func (s Workflow_putNewEvent_Params_List) Set(i int, v Workflow_putNewEvent_Params) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_putNewEvent_Params_List) String() string {
-	str, _ := text.MarshalList(0x8c160cee2c28c32f, s.List)
-	return str
-}
-
-// Workflow_putNewEvent_Params_Promise is a wrapper for a Workflow_putNewEvent_Params promised by a client call.
-type Workflow_putNewEvent_Params_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_putNewEvent_Params_Promise) Struct() (Workflow_putNewEvent_Params, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_putNewEvent_Params{s}, err
-}
-
-func (p Workflow_putNewEvent_Params_Promise) Event() Event_Promise {
-	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(2)}
-}
-
-type Workflow_putNewEvent_Results struct{ capnp.Struct }
-
-// Workflow_putNewEvent_Results_TypeID is the unique identifier for the type Workflow_putNewEvent_Results.
-const Workflow_putNewEvent_Results_TypeID = 0xa6863ad17f79d808
-
-func NewWorkflow_putNewEvent_Results(s *capnp.Segment) (Workflow_putNewEvent_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_putNewEvent_Results{st}, err
-}
-
-func NewRootWorkflow_putNewEvent_Results(s *capnp.Segment) (Workflow_putNewEvent_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_putNewEvent_Results{st}, err
-}
-
-func ReadRootWorkflow_putNewEvent_Results(msg *capnp.Message) (Workflow_putNewEvent_Results, error) {
-	root, err := msg.RootPtr()
-	return Workflow_putNewEvent_Results{root.Struct()}, err
-}
-
-func (s Workflow_putNewEvent_Results) String() string {
-	str, _ := text.Marshal(0xa6863ad17f79d808, s.Struct)
-	return str
-}
-
-func (s Workflow_putNewEvent_Results) EventID() ([]byte, error) {
-	p, err := s.Struct.Ptr(0)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_putNewEvent_Results) HasEventID() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_putNewEvent_Results) SetEventID(v []byte) error {
-	return s.Struct.SetData(0, v)
-}
-
-// Workflow_putNewEvent_Results_List is a list of Workflow_putNewEvent_Results.
-type Workflow_putNewEvent_Results_List struct{ capnp.List }
-
-// NewWorkflow_putNewEvent_Results creates a new list of Workflow_putNewEvent_Results.
-func NewWorkflow_putNewEvent_Results_List(s *capnp.Segment, sz int32) (Workflow_putNewEvent_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return Workflow_putNewEvent_Results_List{l}, err
-}
-
-func (s Workflow_putNewEvent_Results_List) At(i int) Workflow_putNewEvent_Results {
-	return Workflow_putNewEvent_Results{s.List.Struct(i)}
-}
-
-func (s Workflow_putNewEvent_Results_List) Set(i int, v Workflow_putNewEvent_Results) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_putNewEvent_Results_List) String() string {
-	str, _ := text.MarshalList(0xa6863ad17f79d808, s.List)
-	return str
-}
-
-// Workflow_putNewEvent_Results_Promise is a wrapper for a Workflow_putNewEvent_Results promised by a client call.
-type Workflow_putNewEvent_Results_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_putNewEvent_Results_Promise) Struct() (Workflow_putNewEvent_Results, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_putNewEvent_Results{s}, err
-}
-
-type Workflow_getEvent_Params struct{ capnp.Struct }
-
-// Workflow_getEvent_Params_TypeID is the unique identifier for the type Workflow_getEvent_Params.
-const Workflow_getEvent_Params_TypeID = 0xcc590b8e644c6381
-
-func NewWorkflow_getEvent_Params(s *capnp.Segment) (Workflow_getEvent_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getEvent_Params{st}, err
-}
-
-func NewRootWorkflow_getEvent_Params(s *capnp.Segment) (Workflow_getEvent_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getEvent_Params{st}, err
-}
-
-func ReadRootWorkflow_getEvent_Params(msg *capnp.Message) (Workflow_getEvent_Params, error) {
-	root, err := msg.RootPtr()
-	return Workflow_getEvent_Params{root.Struct()}, err
-}
-
-func (s Workflow_getEvent_Params) String() string {
-	str, _ := text.Marshal(0xcc590b8e644c6381, s.Struct)
-	return str
-}
-
-func (s Workflow_getEvent_Params) EventID() ([]byte, error) {
-	p, err := s.Struct.Ptr(0)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_getEvent_Params) HasEventID() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_getEvent_Params) SetEventID(v []byte) error {
-	return s.Struct.SetData(0, v)
-}
-
-// Workflow_getEvent_Params_List is a list of Workflow_getEvent_Params.
-type Workflow_getEvent_Params_List struct{ capnp.List }
-
-// NewWorkflow_getEvent_Params creates a new list of Workflow_getEvent_Params.
-func NewWorkflow_getEvent_Params_List(s *capnp.Segment, sz int32) (Workflow_getEvent_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return Workflow_getEvent_Params_List{l}, err
-}
-
-func (s Workflow_getEvent_Params_List) At(i int) Workflow_getEvent_Params {
-	return Workflow_getEvent_Params{s.List.Struct(i)}
-}
-
-func (s Workflow_getEvent_Params_List) Set(i int, v Workflow_getEvent_Params) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_getEvent_Params_List) String() string {
-	str, _ := text.MarshalList(0xcc590b8e644c6381, s.List)
-	return str
-}
-
-// Workflow_getEvent_Params_Promise is a wrapper for a Workflow_getEvent_Params promised by a client call.
-type Workflow_getEvent_Params_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_getEvent_Params_Promise) Struct() (Workflow_getEvent_Params, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_getEvent_Params{s}, err
-}
-
-type Workflow_getEvent_Results struct{ capnp.Struct }
-
-// Workflow_getEvent_Results_TypeID is the unique identifier for the type Workflow_getEvent_Results.
-const Workflow_getEvent_Results_TypeID = 0xc6682ec0740925e5
-
-func NewWorkflow_getEvent_Results(s *capnp.Segment) (Workflow_getEvent_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getEvent_Results{st}, err
-}
-
-func NewRootWorkflow_getEvent_Results(s *capnp.Segment) (Workflow_getEvent_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getEvent_Results{st}, err
-}
-
-func ReadRootWorkflow_getEvent_Results(msg *capnp.Message) (Workflow_getEvent_Results, error) {
-	root, err := msg.RootPtr()
-	return Workflow_getEvent_Results{root.Struct()}, err
-}
-
-func (s Workflow_getEvent_Results) String() string {
-	str, _ := text.Marshal(0xc6682ec0740925e5, s.Struct)
-	return str
-}
-
-func (s Workflow_getEvent_Results) Event() (Event, error) {
-	p, err := s.Struct.Ptr(0)
-	return Event{Struct: p.Struct()}, err
-}
-
-func (s Workflow_getEvent_Results) HasEvent() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_getEvent_Results) SetEvent(v Event) error {
-	return s.Struct.SetPtr(0, v.Struct.ToPtr())
-}
-
-// NewEvent sets the event field to a newly
-// allocated Event struct, preferring placement in s's segment.
-func (s Workflow_getEvent_Results) NewEvent() (Event, error) {
-	ss, err := NewEvent(s.Struct.Segment())
-	if err != nil {
-		return Event{}, err
-	}
-	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
-	return ss, err
-}
-
-// Workflow_getEvent_Results_List is a list of Workflow_getEvent_Results.
-type Workflow_getEvent_Results_List struct{ capnp.List }
-
-// NewWorkflow_getEvent_Results creates a new list of Workflow_getEvent_Results.
-func NewWorkflow_getEvent_Results_List(s *capnp.Segment, sz int32) (Workflow_getEvent_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return Workflow_getEvent_Results_List{l}, err
-}
-
-func (s Workflow_getEvent_Results_List) At(i int) Workflow_getEvent_Results {
-	return Workflow_getEvent_Results{s.List.Struct(i)}
-}
-
-func (s Workflow_getEvent_Results_List) Set(i int, v Workflow_getEvent_Results) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_getEvent_Results_List) String() string {
-	str, _ := text.MarshalList(0xc6682ec0740925e5, s.List)
-	return str
-}
-
-// Workflow_getEvent_Results_Promise is a wrapper for a Workflow_getEvent_Results promised by a client call.
-type Workflow_getEvent_Results_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_getEvent_Results_Promise) Struct() (Workflow_getEvent_Results, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_getEvent_Results{s}, err
-}
-
-func (p Workflow_getEvent_Results_Promise) Event() Event_Promise {
-	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+func (p Workflow_connect_Results_Promise) Connection() Connection {
+	return Connection{Client: p.Pipeline.GetPipeline(0).Client()}
 }
 
 type Workflow_getEventAllVersions_Params struct{ capnp.Struct }
 
 // Workflow_getEventAllVersions_Params_TypeID is the unique identifier for the type Workflow_getEventAllVersions_Params.
-const Workflow_getEventAllVersions_Params_TypeID = 0x814b25c6a90ab3fd
+const Workflow_getEventAllVersions_Params_TypeID = 0x8c160cee2c28c32f
 
 func NewWorkflow_getEventAllVersions_Params(s *capnp.Segment) (Workflow_getEventAllVersions_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1076,7 +1706,7 @@ func ReadRootWorkflow_getEventAllVersions_Params(msg *capnp.Message) (Workflow_g
 }
 
 func (s Workflow_getEventAllVersions_Params) String() string {
-	str, _ := text.Marshal(0x814b25c6a90ab3fd, s.Struct)
+	str, _ := text.Marshal(0x8c160cee2c28c32f, s.Struct)
 	return str
 }
 
@@ -1112,7 +1742,7 @@ func (s Workflow_getEventAllVersions_Params_List) Set(i int, v Workflow_getEvent
 }
 
 func (s Workflow_getEventAllVersions_Params_List) String() string {
-	str, _ := text.MarshalList(0x814b25c6a90ab3fd, s.List)
+	str, _ := text.MarshalList(0x8c160cee2c28c32f, s.List)
 	return str
 }
 
@@ -1127,7 +1757,7 @@ func (p Workflow_getEventAllVersions_Params_Promise) Struct() (Workflow_getEvent
 type Workflow_getEventAllVersions_Results struct{ capnp.Struct }
 
 // Workflow_getEventAllVersions_Results_TypeID is the unique identifier for the type Workflow_getEventAllVersions_Results.
-const Workflow_getEventAllVersions_Results_TypeID = 0x90eb69d2aa988bfb
+const Workflow_getEventAllVersions_Results_TypeID = 0xa6863ad17f79d808
 
 func NewWorkflow_getEventAllVersions_Results(s *capnp.Segment) (Workflow_getEventAllVersions_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1145,7 +1775,7 @@ func ReadRootWorkflow_getEventAllVersions_Results(msg *capnp.Message) (Workflow_
 }
 
 func (s Workflow_getEventAllVersions_Results) String() string {
-	str, _ := text.Marshal(0x90eb69d2aa988bfb, s.Struct)
+	str, _ := text.Marshal(0xa6863ad17f79d808, s.Struct)
 	return str
 }
 
@@ -1192,7 +1822,7 @@ func (s Workflow_getEventAllVersions_Results_List) Set(i int, v Workflow_getEven
 }
 
 func (s Workflow_getEventAllVersions_Results_List) String() string {
-	str, _ := text.MarshalList(0x90eb69d2aa988bfb, s.List)
+	str, _ := text.MarshalList(0xa6863ad17f79d808, s.List)
 	return str
 }
 
@@ -1202,6 +1832,294 @@ type Workflow_getEventAllVersions_Results_Promise struct{ *capnp.Pipeline }
 func (p Workflow_getEventAllVersions_Results_Promise) Struct() (Workflow_getEventAllVersions_Results, error) {
 	s, err := p.Pipeline.Struct()
 	return Workflow_getEventAllVersions_Results{s}, err
+}
+
+type Workflow_getQueue_Params struct{ capnp.Struct }
+
+// Workflow_getQueue_Params_TypeID is the unique identifier for the type Workflow_getQueue_Params.
+const Workflow_getQueue_Params_TypeID = 0xcc590b8e644c6381
+
+func NewWorkflow_getQueue_Params(s *capnp.Segment) (Workflow_getQueue_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getQueue_Params{st}, err
+}
+
+func NewRootWorkflow_getQueue_Params(s *capnp.Segment) (Workflow_getQueue_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getQueue_Params{st}, err
+}
+
+func ReadRootWorkflow_getQueue_Params(msg *capnp.Message) (Workflow_getQueue_Params, error) {
+	root, err := msg.RootPtr()
+	return Workflow_getQueue_Params{root.Struct()}, err
+}
+
+func (s Workflow_getQueue_Params) String() string {
+	str, _ := text.Marshal(0xcc590b8e644c6381, s.Struct)
+	return str
+}
+
+func (s Workflow_getQueue_Params) WorkerID() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s Workflow_getQueue_Params) HasWorkerID() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_getQueue_Params) SetWorkerID(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+// Workflow_getQueue_Params_List is a list of Workflow_getQueue_Params.
+type Workflow_getQueue_Params_List struct{ capnp.List }
+
+// NewWorkflow_getQueue_Params creates a new list of Workflow_getQueue_Params.
+func NewWorkflow_getQueue_Params_List(s *capnp.Segment, sz int32) (Workflow_getQueue_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_getQueue_Params_List{l}, err
+}
+
+func (s Workflow_getQueue_Params_List) At(i int) Workflow_getQueue_Params {
+	return Workflow_getQueue_Params{s.List.Struct(i)}
+}
+
+func (s Workflow_getQueue_Params_List) Set(i int, v Workflow_getQueue_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_getQueue_Params_List) String() string {
+	str, _ := text.MarshalList(0xcc590b8e644c6381, s.List)
+	return str
+}
+
+// Workflow_getQueue_Params_Promise is a wrapper for a Workflow_getQueue_Params promised by a client call.
+type Workflow_getQueue_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_getQueue_Params_Promise) Struct() (Workflow_getQueue_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_getQueue_Params{s}, err
+}
+
+type Workflow_getQueue_Results struct{ capnp.Struct }
+
+// Workflow_getQueue_Results_TypeID is the unique identifier for the type Workflow_getQueue_Results.
+const Workflow_getQueue_Results_TypeID = 0xc6682ec0740925e5
+
+func NewWorkflow_getQueue_Results(s *capnp.Segment) (Workflow_getQueue_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getQueue_Results{st}, err
+}
+
+func NewRootWorkflow_getQueue_Results(s *capnp.Segment) (Workflow_getQueue_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getQueue_Results{st}, err
+}
+
+func ReadRootWorkflow_getQueue_Results(msg *capnp.Message) (Workflow_getQueue_Results, error) {
+	root, err := msg.RootPtr()
+	return Workflow_getQueue_Results{root.Struct()}, err
+}
+
+func (s Workflow_getQueue_Results) String() string {
+	str, _ := text.Marshal(0xc6682ec0740925e5, s.Struct)
+	return str
+}
+
+func (s Workflow_getQueue_Results) Queue() (Queue, error) {
+	p, err := s.Struct.Ptr(0)
+	return Queue{Struct: p.Struct()}, err
+}
+
+func (s Workflow_getQueue_Results) HasQueue() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_getQueue_Results) SetQueue(v Queue) error {
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewQueue sets the queue field to a newly
+// allocated Queue struct, preferring placement in s's segment.
+func (s Workflow_getQueue_Results) NewQueue() (Queue, error) {
+	ss, err := NewQueue(s.Struct.Segment())
+	if err != nil {
+		return Queue{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
+// Workflow_getQueue_Results_List is a list of Workflow_getQueue_Results.
+type Workflow_getQueue_Results_List struct{ capnp.List }
+
+// NewWorkflow_getQueue_Results creates a new list of Workflow_getQueue_Results.
+func NewWorkflow_getQueue_Results_List(s *capnp.Segment, sz int32) (Workflow_getQueue_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_getQueue_Results_List{l}, err
+}
+
+func (s Workflow_getQueue_Results_List) At(i int) Workflow_getQueue_Results {
+	return Workflow_getQueue_Results{s.List.Struct(i)}
+}
+
+func (s Workflow_getQueue_Results_List) Set(i int, v Workflow_getQueue_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_getQueue_Results_List) String() string {
+	str, _ := text.MarshalList(0xc6682ec0740925e5, s.List)
+	return str
+}
+
+// Workflow_getQueue_Results_Promise is a wrapper for a Workflow_getQueue_Results promised by a client call.
+type Workflow_getQueue_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_getQueue_Results_Promise) Struct() (Workflow_getQueue_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_getQueue_Results{s}, err
+}
+
+func (p Workflow_getQueue_Results_Promise) Queue() Queue_Promise {
+	return Queue_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+type Workflow_getQueues_Params struct{ capnp.Struct }
+
+// Workflow_getQueues_Params_TypeID is the unique identifier for the type Workflow_getQueues_Params.
+const Workflow_getQueues_Params_TypeID = 0x814b25c6a90ab3fd
+
+func NewWorkflow_getQueues_Params(s *capnp.Segment) (Workflow_getQueues_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return Workflow_getQueues_Params{st}, err
+}
+
+func NewRootWorkflow_getQueues_Params(s *capnp.Segment) (Workflow_getQueues_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return Workflow_getQueues_Params{st}, err
+}
+
+func ReadRootWorkflow_getQueues_Params(msg *capnp.Message) (Workflow_getQueues_Params, error) {
+	root, err := msg.RootPtr()
+	return Workflow_getQueues_Params{root.Struct()}, err
+}
+
+func (s Workflow_getQueues_Params) String() string {
+	str, _ := text.Marshal(0x814b25c6a90ab3fd, s.Struct)
+	return str
+}
+
+// Workflow_getQueues_Params_List is a list of Workflow_getQueues_Params.
+type Workflow_getQueues_Params_List struct{ capnp.List }
+
+// NewWorkflow_getQueues_Params creates a new list of Workflow_getQueues_Params.
+func NewWorkflow_getQueues_Params_List(s *capnp.Segment, sz int32) (Workflow_getQueues_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return Workflow_getQueues_Params_List{l}, err
+}
+
+func (s Workflow_getQueues_Params_List) At(i int) Workflow_getQueues_Params {
+	return Workflow_getQueues_Params{s.List.Struct(i)}
+}
+
+func (s Workflow_getQueues_Params_List) Set(i int, v Workflow_getQueues_Params) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_getQueues_Params_List) String() string {
+	str, _ := text.MarshalList(0x814b25c6a90ab3fd, s.List)
+	return str
+}
+
+// Workflow_getQueues_Params_Promise is a wrapper for a Workflow_getQueues_Params promised by a client call.
+type Workflow_getQueues_Params_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_getQueues_Params_Promise) Struct() (Workflow_getQueues_Params, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_getQueues_Params{s}, err
+}
+
+type Workflow_getQueues_Results struct{ capnp.Struct }
+
+// Workflow_getQueues_Results_TypeID is the unique identifier for the type Workflow_getQueues_Results.
+const Workflow_getQueues_Results_TypeID = 0x90eb69d2aa988bfb
+
+func NewWorkflow_getQueues_Results(s *capnp.Segment) (Workflow_getQueues_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getQueues_Results{st}, err
+}
+
+func NewRootWorkflow_getQueues_Results(s *capnp.Segment) (Workflow_getQueues_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return Workflow_getQueues_Results{st}, err
+}
+
+func ReadRootWorkflow_getQueues_Results(msg *capnp.Message) (Workflow_getQueues_Results, error) {
+	root, err := msg.RootPtr()
+	return Workflow_getQueues_Results{root.Struct()}, err
+}
+
+func (s Workflow_getQueues_Results) String() string {
+	str, _ := text.Marshal(0x90eb69d2aa988bfb, s.Struct)
+	return str
+}
+
+func (s Workflow_getQueues_Results) Queues() (Queue_List, error) {
+	p, err := s.Struct.Ptr(0)
+	return Queue_List{List: p.List()}, err
+}
+
+func (s Workflow_getQueues_Results) HasQueues() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s Workflow_getQueues_Results) SetQueues(v Queue_List) error {
+	return s.Struct.SetPtr(0, v.List.ToPtr())
+}
+
+// NewQueues sets the queues field to a newly
+// allocated Queue_List, preferring placement in s's segment.
+func (s Workflow_getQueues_Results) NewQueues(n int32) (Queue_List, error) {
+	l, err := NewQueue_List(s.Struct.Segment(), n)
+	if err != nil {
+		return Queue_List{}, err
+	}
+	err = s.Struct.SetPtr(0, l.List.ToPtr())
+	return l, err
+}
+
+// Workflow_getQueues_Results_List is a list of Workflow_getQueues_Results.
+type Workflow_getQueues_Results_List struct{ capnp.List }
+
+// NewWorkflow_getQueues_Results creates a new list of Workflow_getQueues_Results.
+func NewWorkflow_getQueues_Results_List(s *capnp.Segment, sz int32) (Workflow_getQueues_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return Workflow_getQueues_Results_List{l}, err
+}
+
+func (s Workflow_getQueues_Results_List) At(i int) Workflow_getQueues_Results {
+	return Workflow_getQueues_Results{s.List.Struct(i)}
+}
+
+func (s Workflow_getQueues_Results_List) Set(i int, v Workflow_getQueues_Results) error {
+	return s.List.SetStruct(i, v.Struct)
+}
+
+func (s Workflow_getQueues_Results_List) String() string {
+	str, _ := text.MarshalList(0x90eb69d2aa988bfb, s.List)
+	return str
+}
+
+// Workflow_getQueues_Results_Promise is a wrapper for a Workflow_getQueues_Results promised by a client call.
+type Workflow_getQueues_Results_Promise struct{ *capnp.Pipeline }
+
+func (p Workflow_getQueues_Results_Promise) Struct() (Workflow_getQueues_Results, error) {
+	s, err := p.Pipeline.Struct()
+	return Workflow_getQueues_Results{s}, err
 }
 
 type Workflow_getLatestEventID_Params struct{ capnp.Struct }
@@ -1342,424 +2260,123 @@ func (p Workflow_getLatestEventID_Results_Promise) Struct() (Workflow_getLatestE
 	return Workflow_getLatestEventID_Results{s}, err
 }
 
-type Workflow_getJob_Params struct{ capnp.Struct }
-
-// Workflow_getJob_Params_TypeID is the unique identifier for the type Workflow_getJob_Params.
-const Workflow_getJob_Params_TypeID = 0x9eb9067e5f36a40d
-
-func NewWorkflow_getJob_Params(s *capnp.Segment) (Workflow_getJob_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getJob_Params{st}, err
-}
-
-func NewRootWorkflow_getJob_Params(s *capnp.Segment) (Workflow_getJob_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Workflow_getJob_Params{st}, err
-}
-
-func ReadRootWorkflow_getJob_Params(msg *capnp.Message) (Workflow_getJob_Params, error) {
-	root, err := msg.RootPtr()
-	return Workflow_getJob_Params{root.Struct()}, err
-}
-
-func (s Workflow_getJob_Params) String() string {
-	str, _ := text.Marshal(0x9eb9067e5f36a40d, s.Struct)
-	return str
-}
-
-func (s Workflow_getJob_Params) WorkerID() ([]byte, error) {
-	p, err := s.Struct.Ptr(0)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_getJob_Params) HasWorkerID() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_getJob_Params) SetWorkerID(v []byte) error {
-	return s.Struct.SetData(0, v)
-}
-
-// Workflow_getJob_Params_List is a list of Workflow_getJob_Params.
-type Workflow_getJob_Params_List struct{ capnp.List }
-
-// NewWorkflow_getJob_Params creates a new list of Workflow_getJob_Params.
-func NewWorkflow_getJob_Params_List(s *capnp.Segment, sz int32) (Workflow_getJob_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return Workflow_getJob_Params_List{l}, err
-}
-
-func (s Workflow_getJob_Params_List) At(i int) Workflow_getJob_Params {
-	return Workflow_getJob_Params{s.List.Struct(i)}
-}
-
-func (s Workflow_getJob_Params_List) Set(i int, v Workflow_getJob_Params) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_getJob_Params_List) String() string {
-	str, _ := text.MarshalList(0x9eb9067e5f36a40d, s.List)
-	return str
-}
-
-// Workflow_getJob_Params_Promise is a wrapper for a Workflow_getJob_Params promised by a client call.
-type Workflow_getJob_Params_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_getJob_Params_Promise) Struct() (Workflow_getJob_Params, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_getJob_Params{s}, err
-}
-
-type Workflow_getJob_Results struct{ capnp.Struct }
-
-// Workflow_getJob_Results_TypeID is the unique identifier for the type Workflow_getJob_Results.
-const Workflow_getJob_Results_TypeID = 0xbce9dc3869c5a017
-
-func NewWorkflow_getJob_Results(s *capnp.Segment) (Workflow_getJob_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return Workflow_getJob_Results{st}, err
-}
-
-func NewRootWorkflow_getJob_Results(s *capnp.Segment) (Workflow_getJob_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return Workflow_getJob_Results{st}, err
-}
-
-func ReadRootWorkflow_getJob_Results(msg *capnp.Message) (Workflow_getJob_Results, error) {
-	root, err := msg.RootPtr()
-	return Workflow_getJob_Results{root.Struct()}, err
-}
-
-func (s Workflow_getJob_Results) String() string {
-	str, _ := text.Marshal(0xbce9dc3869c5a017, s.Struct)
-	return str
-}
-
-func (s Workflow_getJob_Results) EventID() ([]byte, error) {
-	p, err := s.Struct.Ptr(0)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_getJob_Results) HasEventID() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_getJob_Results) SetEventID(v []byte) error {
-	return s.Struct.SetData(0, v)
-}
-
-func (s Workflow_getJob_Results) AckID() ([]byte, error) {
-	p, err := s.Struct.Ptr(1)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_getJob_Results) HasAckID() bool {
-	p, err := s.Struct.Ptr(1)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_getJob_Results) SetAckID(v []byte) error {
-	return s.Struct.SetData(1, v)
-}
-
-func (s Workflow_getJob_Results) FlowID() ([]byte, error) {
-	p, err := s.Struct.Ptr(2)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_getJob_Results) HasFlowID() bool {
-	p, err := s.Struct.Ptr(2)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_getJob_Results) SetFlowID(v []byte) error {
-	return s.Struct.SetData(2, v)
-}
-
-// Workflow_getJob_Results_List is a list of Workflow_getJob_Results.
-type Workflow_getJob_Results_List struct{ capnp.List }
-
-// NewWorkflow_getJob_Results creates a new list of Workflow_getJob_Results.
-func NewWorkflow_getJob_Results_List(s *capnp.Segment, sz int32) (Workflow_getJob_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
-	return Workflow_getJob_Results_List{l}, err
-}
-
-func (s Workflow_getJob_Results_List) At(i int) Workflow_getJob_Results {
-	return Workflow_getJob_Results{s.List.Struct(i)}
-}
-
-func (s Workflow_getJob_Results_List) Set(i int, v Workflow_getJob_Results) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_getJob_Results_List) String() string {
-	str, _ := text.MarshalList(0xbce9dc3869c5a017, s.List)
-	return str
-}
-
-// Workflow_getJob_Results_Promise is a wrapper for a Workflow_getJob_Results promised by a client call.
-type Workflow_getJob_Results_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_getJob_Results_Promise) Struct() (Workflow_getJob_Results, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_getJob_Results{s}, err
-}
-
-type Workflow_ackJob_Params struct{ capnp.Struct }
-
-// Workflow_ackJob_Params_TypeID is the unique identifier for the type Workflow_ackJob_Params.
-const Workflow_ackJob_Params_TypeID = 0x94d4c0b32ff637f3
-
-func NewWorkflow_ackJob_Params(s *capnp.Segment) (Workflow_ackJob_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return Workflow_ackJob_Params{st}, err
-}
-
-func NewRootWorkflow_ackJob_Params(s *capnp.Segment) (Workflow_ackJob_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return Workflow_ackJob_Params{st}, err
-}
-
-func ReadRootWorkflow_ackJob_Params(msg *capnp.Message) (Workflow_ackJob_Params, error) {
-	root, err := msg.RootPtr()
-	return Workflow_ackJob_Params{root.Struct()}, err
-}
-
-func (s Workflow_ackJob_Params) String() string {
-	str, _ := text.Marshal(0x94d4c0b32ff637f3, s.Struct)
-	return str
-}
-
-func (s Workflow_ackJob_Params) Event() (Event, error) {
-	p, err := s.Struct.Ptr(0)
-	return Event{Struct: p.Struct()}, err
-}
-
-func (s Workflow_ackJob_Params) HasEvent() bool {
-	p, err := s.Struct.Ptr(0)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_ackJob_Params) SetEvent(v Event) error {
-	return s.Struct.SetPtr(0, v.Struct.ToPtr())
-}
-
-// NewEvent sets the event field to a newly
-// allocated Event struct, preferring placement in s's segment.
-func (s Workflow_ackJob_Params) NewEvent() (Event, error) {
-	ss, err := NewEvent(s.Struct.Segment())
-	if err != nil {
-		return Event{}, err
-	}
-	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
-	return ss, err
-}
-
-func (s Workflow_ackJob_Params) AckID() ([]byte, error) {
-	p, err := s.Struct.Ptr(1)
-	return []byte(p.Data()), err
-}
-
-func (s Workflow_ackJob_Params) HasAckID() bool {
-	p, err := s.Struct.Ptr(1)
-	return p.IsValid() || err != nil
-}
-
-func (s Workflow_ackJob_Params) SetAckID(v []byte) error {
-	return s.Struct.SetData(1, v)
-}
-
-// Workflow_ackJob_Params_List is a list of Workflow_ackJob_Params.
-type Workflow_ackJob_Params_List struct{ capnp.List }
-
-// NewWorkflow_ackJob_Params creates a new list of Workflow_ackJob_Params.
-func NewWorkflow_ackJob_Params_List(s *capnp.Segment, sz int32) (Workflow_ackJob_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return Workflow_ackJob_Params_List{l}, err
-}
-
-func (s Workflow_ackJob_Params_List) At(i int) Workflow_ackJob_Params {
-	return Workflow_ackJob_Params{s.List.Struct(i)}
-}
-
-func (s Workflow_ackJob_Params_List) Set(i int, v Workflow_ackJob_Params) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_ackJob_Params_List) String() string {
-	str, _ := text.MarshalList(0x94d4c0b32ff637f3, s.List)
-	return str
-}
-
-// Workflow_ackJob_Params_Promise is a wrapper for a Workflow_ackJob_Params promised by a client call.
-type Workflow_ackJob_Params_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_ackJob_Params_Promise) Struct() (Workflow_ackJob_Params, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_ackJob_Params{s}, err
-}
-
-func (p Workflow_ackJob_Params_Promise) Event() Event_Promise {
-	return Event_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
-}
-
-type Workflow_ackJob_Results struct{ capnp.Struct }
-
-// Workflow_ackJob_Results_TypeID is the unique identifier for the type Workflow_ackJob_Results.
-const Workflow_ackJob_Results_TypeID = 0xf0040fe0d0e55a1b
-
-func NewWorkflow_ackJob_Results(s *capnp.Segment) (Workflow_ackJob_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
-	return Workflow_ackJob_Results{st}, err
-}
-
-func NewRootWorkflow_ackJob_Results(s *capnp.Segment) (Workflow_ackJob_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
-	return Workflow_ackJob_Results{st}, err
-}
-
-func ReadRootWorkflow_ackJob_Results(msg *capnp.Message) (Workflow_ackJob_Results, error) {
-	root, err := msg.RootPtr()
-	return Workflow_ackJob_Results{root.Struct()}, err
-}
-
-func (s Workflow_ackJob_Results) String() string {
-	str, _ := text.Marshal(0xf0040fe0d0e55a1b, s.Struct)
-	return str
-}
-
-func (s Workflow_ackJob_Results) Acked() bool {
-	return s.Struct.Bit(0)
-}
-
-func (s Workflow_ackJob_Results) SetAcked(v bool) {
-	s.Struct.SetBit(0, v)
-}
-
-// Workflow_ackJob_Results_List is a list of Workflow_ackJob_Results.
-type Workflow_ackJob_Results_List struct{ capnp.List }
-
-// NewWorkflow_ackJob_Results creates a new list of Workflow_ackJob_Results.
-func NewWorkflow_ackJob_Results_List(s *capnp.Segment, sz int32) (Workflow_ackJob_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
-	return Workflow_ackJob_Results_List{l}, err
-}
-
-func (s Workflow_ackJob_Results_List) At(i int) Workflow_ackJob_Results {
-	return Workflow_ackJob_Results{s.List.Struct(i)}
-}
-
-func (s Workflow_ackJob_Results_List) Set(i int, v Workflow_ackJob_Results) error {
-	return s.List.SetStruct(i, v.Struct)
-}
-
-func (s Workflow_ackJob_Results_List) String() string {
-	str, _ := text.MarshalList(0xf0040fe0d0e55a1b, s.List)
-	return str
-}
-
-// Workflow_ackJob_Results_Promise is a wrapper for a Workflow_ackJob_Results promised by a client call.
-type Workflow_ackJob_Results_Promise struct{ *capnp.Pipeline }
-
-func (p Workflow_ackJob_Results_Promise) Struct() (Workflow_ackJob_Results, error) {
-	s, err := p.Pipeline.Struct()
-	return Workflow_ackJob_Results{s}, err
-}
-
-const schema_d598217bc368711c = "x\xda\xa4Uah\x1cE\x14~of\xf7\xe6\x12\x93" +
-	"6\xe3Fk\xb5\x10\x1aRl\xa4M\xd3\xc4j=\x08" +
-	"w\xc6\x14\xbc\x98\xcaM\xa8U\x8bA7\x97\xb59\xef" +
-	"r\x97\xdc\xed5M\xa5\xc6H[\x88U\xb1\xa0\xd0V" +
-	"\x90\xa6Z!B\xa9\xb5\x88\x88\x8a\x95\xd2J\x8b\x88-" +
-	"*\xfd!\xe2\x9fR\x8a \x82\xe8\x9f\x12Wf\xf7f" +
-	"o\x13\xef\x9a\x80\xff\xeev\xbf\xf9\xe6\xbd\xef\xbd\xef\xdb" +
-	"\xf6Gh\x8cl\xd4\xa3\x0c@l\xd3C\xce\xdc\x99\xda" +
-	"\xd9\x0bk\x1e\x9b\x02n \x80\x8e\x0c\xa0s?\xcd#" +
-	"\xa0q\x88F\x01\x9d\xf3s\xc7\xbf:\xfa\xcf\xa5\x83\x1e" +
-	"@\x93\xefO\xd3f\x04\xcd\xd9pn\xed\xba\xdf\xeb\xee" +
-	"|\xadt\x94\xcaWGh\x87<:CO\x01:\xfb" +
-	"B\x07\xee\xfd|\xfa\x97\xd7\x83\xdc]\xda\x0e\x09\x88k" +
-	"\x92\xfb\xe6\xc1\xc3\x1f^I\xfd\xf6f\x10\x90\xd2\xf6H" +
-	"@\xd1\x05\xfc\xf9\xe0\xdf\x1b\xce\x9c\xfd\xe1\xad\x12\x80H" +
-	"\xc0\x09\xadV\x02Nj\xe3\x80N\xfd\xfb\x0f<\xfbR" +
-	"\xe8\xb3w\x83\x0c5\xba\x0b\xe0\xbad8\xf5\xdd\xc9\xf6" +
-	"\xce\x95\x03\xef\x01\xaf\xa5\xce\xaa\xb1\xe1s/\xae>\xfc" +
-	"#\x00\x1a\x9b\xf4\xa3F\x97.\xf1\x0f\xe9\xdf\xa01\x12" +
-	"b\x00N\xf8\xea\xc4\xe4\xe5\xc8\x81\x0f\x82tO\x84\"" +
-	"\x92n $\xe9\xd6M\xaf\xd8\x98\xbb\xa3\xf9\xe3 `" +
-	"ohP\x02\xa6]\xc0\x8ac\xe7S\x9b\x7f\xbe\xf1E" +
-	"P\x94\xd9\xd0\xed\x12p:$E\xb9\xb6\xa6\xc6>\xdb" +
-	"6|!\xc8\x10g\xcd\x12 \x98d\x98J\xf6\x0d\xbd" +
-	"q\xdb\xd3\xdf\x06\x01c\xecn\x09\x98p\x01\xdd\x9f\xb6" +
-	"\xfeT\xbb\xf9\xd8\x0d\xe0\x0d\xe8|}\xb5\xf3\xa3\xee\xed" +
-	"{\xfe\xf2\xc41\x8e\xb0K\xc6\x09&\x7f\xcd0\xa9\xcf" +
-	"=;\xae}\xff\xebr\xed\x0f\x10\x06\xaa\xf1\xcd1\xb7" +
-	"\x1c=,\xc9\xfc\xf3\xa2\x16\xb1,\x90[\xb8\xb1&\xfc" +
-	"\x8a\xd1\x1a^\x01`l\x0a_\x07t\xde\x11]W." +
-	"\xb6\xda7K\xa5\xb9l+k\xdc\xd2V\xd7\\\x87\xf5" +
-	"\xce\x0b\xb9\xc1\xb6\xa49\x9a\xd5F#O\xe6\xf2\xe9\xe7" +
-	"3\xb9\xf1\xb6\x9d\x96\xbde\x97\x95\xb5\x1f\xced\xb6[" +
-	"\xf9B*\x97-\xb4$\x9a\xcc\xbc9R\x10\x1a\xd5\x00" +
-	"4\x04\xe0\xf5\xdd\x00\"LQ4\x12\x9c\xb4$>\xde" +
-	"\x83\xf5@\xb0\x1e\xd0\xa7\xa5\x01\xda\xd1\xa2G\xdb\xd2o" +
-	"\x15\x8a,c\x17\xaa\xa1\x1e\xb7\xc6=\xa0\xba\xb4\xce\xbf" +
-	"tK\x04@\xc4(\x8a>\x82\x1c\xb1QJ\xc4\xe3\xbd" +
-	"\x00\xe2Q\x8ab\x1bANH#\x12\x00.:\x00D" +
-	"\x1fE\xf1\x14\xc1\xa8d\x0eT7\x9e\xcb\xa7\xad|\xbc" +
-	"\x07\x00\xd4\xb3&\xb7\x03l(\xcb\x0b\x88\x0d\x81N\x16" +
-	"\x08\xd4g\xdaV\xc1\xeb'\xde\xd3\x920\xf3&\x9d\xaf" +
-	"N\xa4\xac\xce\xc2\xeb\x97\xaay\x7f\xd4*\x143vE" +
-	"\xda\x16\x82Q\xb7\xe4\x02.\x03LP\\P\xfa\xb2*" +
-	"C0\x93\xe9\xde\xdc\xa0[\xf0H\xc1\xe5R\xd4\xadR" +
-	"\xb0\x16\x8a\xa2= \xedz\xf9p-Eq?\xa9*" +
-	"Q\x93\x99L/2\xfa\x9d\x96=\xef\xd6@Crv" +
-	"u\x14\xc5]\xa4\xe2\\|:Tt47\x9e@\x14" +
-	"\xab\xa8\x0e\xe0\xef7\xaa\xd0\xe3\x97{\x81\xf0\x8b\x0c\xd1" +
-	"O;T\x19\xc1\xbf\x1c\x04\xc2?aH|\xcb\xa22" +
-	"7\x9f\x95\xe7f\x18R?`Q\x85\x1d\x7f\xfb8\x10" +
-	"~\x88\xa1\xe6\x07$\xaaX\xe1\xfb_\x05\xc2\xa7\x18\xea" +
-	"~\xb2\xa1J\x14^\x8c\x00\xe1)\x86!?\x16Q\xd9" +
-	"\x9b\x0f\xc8w\x829\xca\x15\x00\x10CGm?0+" +
-	"k\xc7\xd0Qk\xe1\xbdU\xffPm\x09\xcbe\x0b\xde" +
-	"sw\x1fQ-\xa4DG=\xd1c\x18\xf5f\x1e\xc3" +
-	"\x04\xe2\xa2\x96\xab\xb4sK1\xfa-\xed\xa1\x0c\xff\x7f" +
-	"\xd2\xa3\xb4B\xfdny8/\x13\xba+e\x82\\\xdc" +
-	"\x1e\x8a\"\x11\xc8\x84\xad\x91rP,\xbct\xfe\x16W" +
-	"\xb3,\xad`\xd9\x8a\xedu\x94\xdb[4Z*\x92V" +
-	"\x88\x94\xa5HFF#\xee\xf9\xb6\xad\x96m\x0e\x99\xb6" +
-	"\x09 \xdd\x12\xb0y\xf3\"6gik\x02\xeb\x80`" +
-	"\x1d`\xd3.3S\xb4\xd4\xbf[\x05\x8a?\x97*\x1a" +
-	"\x98\xc9\xb45\x84\x08\x04q\xbe\xa9\xbd\xf5\x16\x1a\x06?" +
-	"\x93\xd8\xeb\x94\xeb\x07\xd1\xe0s\x9ar\x82\xcfP\x14\xc3" +
-	"\x04U\xf1\x96\xd4\xe59\x8a\"#G\x8d\xde\xa8S\xf7" +
-	"\x01\x88!\x8a\xe2e\x82\x9c\x92F\xa4\x00|\xaf<\xbd" +
-	"\x9b\xa2\xd8'C9\x95\xb1\xad\xbc*i2\x99\xcb\xda" +
-	"rL%A\x97\x8fX\xb6Y\x8eV\xbf4/Z\xa3" +
-	"^R-\xeds\xa7&Y\xb9\x0b\x7f\x06Vo\xa9\xe2" +
-	"\xd1\xc0\xc6\x8e\xc8\xde\x86)\x0a[\xb6A\xbd6\xc6\xa4" +
-	"\xb0\x19\x8ab\xf7\x92>m\xff\xd9\xf4*\xfb\xf8o\x00" +
-	"\x00\x00\xff\xff\x1c\xc1\x99\xde"
+const schema_d598217bc368711c = "x\xda\xa4Wol\x14\xd5\x16?\xe7\xce\xcc\xce\xce\xb6" +
+	"\xfb\xda\xcb\x14x\x8f\xbc\xa4i\xb3\xe4Q\xd2\xf6\xb5\x05" +
+	"\x0cn\xc4\x85\x8a\x90-`vj\xc0\x88b\x9c\xb6#" +
+	",\xdd\xee\x96\x9dYj1\x05!@,\x7f\x94\x92\x90" +
+	"\xf0'&\x8a\x91\x04\x12\xc1\xe8\x07\x8cbTHI " +
+	"\xfc\x89$\x18\x12#\xf1\x83DDcB\"&\x86\xd4" +
+	"1\xf7\xce\xce\xec\xec\xb2m\x05\xbf\xed\xce\x9c\xf3\xbb\xe7" +
+	"\x9c\xdf9\xbfs\xa7\xa5R\\HZ%[\x01\xd0," +
+	")`\x8f}\x1c:~~\xe6\xb2\xad@U\x04\x10e" +
+	"\x809\xb7\xc4z\x04\xd1\x0e\xf5\xbd\xb0\xb9\xee\xd3\xb7v" +
+	"\x00\x9d\x8a\x00\x12\xb2W\x97\xc5\xd9\x08\xa8^\x17c\x80" +
+	"\xf6\xb2\xb3\xa3b|W\xfc\x0d\xc7\x80\xbb\xde\x13\xdb\x98" +
+	"\xeb\xe8\xd8\xd1/\x0e\xffyq\xb7\x03\xea\xb8~'\xce" +
+	"`\xae\xb7\xb8\xeb\xd5\xdf\xae\xee{\xa9\xf2\x87\xdd\xa0\x85" +
+	"\x10\xed\xffnXw\xee\xb5\xba\x83\xd7\x1dKU\x91\xb6" +
+	"\xa9a\xc9\xf95\x00h\xff\xff\xdc\xac\xc6_+\xa7\xed" +
+	"\xf1\xa3\xf5IY\x866(1\xb4\xed\x81\x9d\xff\xfbl" +
+	"\xf8\xe6^\xbf\xc1!i53x\x9f\x1b\xdc\xdf}\xf0" +
+	"\xc4\xb5\xe4\xcf\xfb\xfc\x06\xa3\x12O\xe527\xd8\x7f," +
+	"<\xb0\xf4l\xe4 hS\xd1\xcdeL\xaag\x06R" +
+	"\x80\x19\x9c\xba\xf2A\xcb\x9c\xff\xacy\x0fhH(\xc4" +
+	"\x0b\xa8\xce\x0c\x1cV\x9b\x02\xcc\xbe!\xb0\x14UE\x96" +
+	"\x01\xec\xe0\x8d\xc1-_Gw\x1e\xf3\x9fw7\xb0\x89" +
+	"\xc1\x8dq\xb85\xad{\x7f\xd9\xbc\xf9\xe8\xa9|m\x09" +
+	"3h\x92\xf9y\xf3d\x96s\xe3\xf0\xf4\xd6\xcc\xd4\xfa" +
+	"\x8f\xfc\x08#r\x173x[f\x08g\xe65\xed\x99" +
+	"vd\xff\x19?\xc2\xe72/\xf1(G\xb85S\xb1" +
+	"\xbel^w\xde\x8fP\x17\xe4G4\x04\x19\xc2\x90\x19" +
+	"V\x9e\xfc\xf6\xea\x05?\xbf\xf1`\x073X\xc9\x0d\xb6" +
+	"v/\xefy\xb3\xe2\xf9K~\x84\\\x90\x1f1\xc4\x0d" +
+	"\x9aOg\xc3\x97\x8eW\xdf\xf4\xc7\xf0n\x90\x97\xf5x" +
+	"\x90\xc5@\x94\xbb\xf7\x0e\xddY~\xdb\x7f\x84\xa4\xb41" +
+	"\x83\xb0\xc2\x10\xdaO7|\x13\x9a\xff\xceO@\xab\xd1" +
+	"\xfe\xea\xc6\x9c\x0f\xdbWm\xba\xe7 \xa9M\xcaE\xf5" +
+	"q\x85\xfd\x9a\xa70\xb0\xdbuK\xbe?V\xb7\xfe\x8e" +
+	"\xaf\xddF\x94\x19\xac\xdd<\xc7\x92n\x12\x98\xf3\xa0\xb2" +
+	"M\x1dR\xa6\x03\xa8\xc3\xca\x8f\x80\xf6\x81\xaa)K\x1e" +
+	"\x9b{\xf1w\x7fL}\xa1v\x16S.\xc4b:\xa2" +
+	"-\xb8v\xa1\xc1\xba\x9fO\x9bgu 4\x85\x97>" +
+	"\xc4\x029\xf9\xc9\xc9\x1b\x7f(W\xc6\x1e\xe8\x85\xb1\xd0" +
+	"\x09U\xaa`\xf6X\xb1\x14\xd5\xeb\x1524\xda\xeb3" +
+	"]\xcd\xddz\x7fZ\xe8\x8f>\x97\xc9\xf6\xbe\x92\xca\x0c" +
+	"4\xaf5,-g\xe4\x0c3\x92\xd0\xb3\xb2\xdeg\xfa" +
+	"\xad\x9e\xca\xa4\xd3F\xb7\x95\xcc\xa4\x99\xdd\xd3\x1b\x8d\xb4" +
+	"\x15I\xe8UY\xbd\xcf\xd4DA\x04\x10\x11\x80\x86\xdb" +
+	"\x01\xb4\xa0\x80Z\x0d\xc1-\x063\x8a/\xc60\x10\x0c" +
+	"\x03\x8e\x83\xd6\x9f\xcb\xa3u\x1a\xb5f.e\x99ec" +
+	"\xebv\x1c\"\x9d\x86\x99K\x09V\xd1\x99\xab\x01\xb4J" +
+	"\x01\xb5\x7f\x13\xb4\xf3vI\x102i\xa4\x85\xa2\x00\"" +
+	"\xf5\x85\x80\xfdQ\x9e*$\x10\xb5\xa0\x07\xd5\xd0\x01\xa0" +
+	"\xcd\x12P\x9bK\x10\xb1\x86\x0d\x1dm\xed\x04\xd0Z\x04" +
+	"\xd4\x9e h\x0fd\xb2\xbdF6\xde\x03\x00^Z\x1b" +
+	"\x18\xd0\xb3\xc9M\x80\x06*@P\xf1\x9d#\x16\x97\x97" +
+	"'\xba(\x95Zed\xcdd&mF\x12\xb5\xfa\xa3" +
+	"T\xb0\x04v\xb9n\x19\xa6\x03\x1e_\xcc\xc8\xd3\x85b" +
+	"\xcch\x013\xc6\x9c\xca\x93R\xa6\x11:\x0d\xb3\x8aq" +
+	"R\x0e,B0\xc6s7\xf1_\x80\x09\x01\xb1\xba\xa0" +
+	"\xa0\x80\xec\xe18\x94\xeb\xdd\xbd\x1d\x99.\xce\xa5\\\x02" +
+	"\xdeV\x88\xb4V\xef\xee5z\x10\x81 \x16S\xe7\x04" +
+	"*d\x06\x18{5\x82\x84\xa27\x1e\xe8\x8a<\x1di" +
+	"\x07Bw0\xdds\x95\x1a]\x01\xa4\x83G\x81\xd0\x9c" +
+	"\x8c\x055AW\x98h\xb2\x03\x08\xd5e$\xde\x12B" +
+	"W\xa8\xe9\xcaN t\x85\x8c\x82'\xee\xe8J\"]" +
+	"\xb4\x0b\x08] o\xc9w\xe0B\xb4]\xc2\xd1e\\" +
+	"\xce\xa4M\xe7\xb9\xd3|\x00\xfe\x7f\x98\x7f\xc7\xd9D\x97" +
+	"Nf\x93\xc0\xbf\xdfQ\x9d1\xc3\x9c\x881\xdeR>" +
+	"\xc6<\x95\x9a\x90\xb1\xb5\x86U\xc4\x98odX\xbfF" +
+	"\x04\xd4Z\x08Rwf\x9a\xda\x0asT\xda\xc4\x8c\xd6" +
+	"\x87m\xe9r\x9d\xf2\xf0J\x93o;w>|9\xb4" +
+	"M\x92C-?\xa0\xa4Z\xd5\xe3\xe6Rn\x96&\xed" +
+	"v>J%#T]\\\xa0b\xd5|\xc6\x18p\x85" +
+	"\x933\x0e\xf0\x08\xe5y0\xce2\xf2\xd1\xe1\x13\xd8\xbc" +
+	"\x02.\xf6+\xe0$\xc2\xee\xae\x89\x7f\xd24\xe3\x100" +
+	"\xd9\x86rw\xcaxE\x9f\x0c\x96\xf4G9P\xf3\x0a" +
+	"\xc3\xd2{tK\x87\xd2\x8dQ?I&r\xaf1\x88" +
+	"\x95@\xb0\x12\xb0v\xa3\x9e\xca\x19\xee\xbf\x89G-O" +
+	"\x83_\xf6x$\xa0\x89\xe8\xbf\xa1`\x87]\x88\x0d\xb4" +
+	"j/2\x9dM\xfd\x8b\x02j\xeb\x0a\xbb\xcc`u\x7f" +
+	"Y@-E\x90\x12\xacA\x02@\x93\xb3\x01\xb4\x1e\x01" +
+	"\xb5\xd7\x09R\x81\xd4\xa0\x00@\x87\x98\xf7\xab\x02j\xdb" +
+	"\xd9\xcaH\xa6,#\xeb*1S8\x8b\x95-\xcfM" +
+	"U\x9fa\xe9\x05A\xf1Bs\x04%\xe64L\xb9y" +
+	"\x1f\xa7\x9d\x13|%\xc2\xa3RV\xee\xd6\xc0!\xb1\xa8" +
+	"\x03\xa3\xe5xc\x8d\xde(\xa06\xff\xc1=9Q\xdf" +
+	"\xa3\x9bK\x15K&\xbf\x94\x00\xbc\x9b(\xba\xdf$t" +
+	"\x84-\x97a\xb6x\xdc\x0b\x1f\xba\x17^:\xd4\xe5," +
+	"%\xe2}\xe3\xa0{S\xf5\x96\x92\xe0\xdd7\xd1\xbd\xac" +
+	"\xd3\x95Q 4.\xa3\xe8\xdd\xbe\xd1\xfdp\xa0\x0b\xd8" +
+	"\xbbV\xd9vg\xd1Y9n\xb5A6\xd2\xfeE\xc5" +
+	"\xdf\xc6\x9c\x06\\\x881G/\xf9\xfa\xf9+\x00\x00\xff" +
+	"\xff\xa8<\x8do"
 
 func init() {
 	schemas.Register(schema_d598217bc368711c,
 		0x814b25c6a90ab3fd,
+		0x858fba217e5b6d0a,
+		0x88498a4904c5c24b,
 		0x8bcafe9abfa2fdc5,
+		0x8be40c5e90cff4cf,
 		0x8c160cee2c28c32f,
 		0x8dde89bb27860684,
 		0x90eb69d2aa988bfb,
-		0x94d4c0b32ff637f3,
-		0x9eb9067e5f36a40d,
+		0x9824c247770da692,
 		0xa35d193330adceaf,
 		0xa6863ad17f79d808,
+		0xafa27e7eec8d315d,
 		0xb222156f3117892c,
-		0xbce9dc3869c5a017,
+		0xbc929b168c2d35bc,
 		0xc6682ec0740925e5,
+		0xc9cfdb3e090d737d,
 		0xcc590b8e644c6381,
+		0xde10a9cc0d72b72e,
+		0xe84cea99f5f10902,
 		0xe9a0380ad629b742,
-		0xf0040fe0d0e55a1b,
+		0xea6a21a6e04621e8,
 		0xf57a5642b033d8c1,
-		0xfb7429c9d23d519b)
+		0xf6ca343646120f95,
+		0xfb7429c9d23d519b,
+		0xfdce09f9d8aeb8ae)
 }

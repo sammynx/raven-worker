@@ -78,8 +78,8 @@ func (c *DefaultWorker) waitForWork() (Reference, error) {
 	cb = backoff.NewConstantBackOff(time.Millisecond * 200)
 
 	for {
-		res, err := c.w.GetJob(context.Background(), func(params workflow.Workflow_getJob_Params) error {
-			return params.SetWorkerID(c.WorkerID.Bytes())
+		res, err := c.w.GetJob(context.Background(), func(params workflow.Connection_getJob_Params) error {
+			return nil
 		}).Struct()
 
 		if err == nil {
