@@ -42,7 +42,7 @@ func (w *DefaultWorker) connect() error {
 
 	u := w.urls[w.connectionCounter%len(w.urls)]
 
-	w.log.Infof("Connecting to rpc server: %s", u)
+	w.log.Infof("Connecting to rpc server: %v", u.String())
 
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {

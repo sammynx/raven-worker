@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"net/url"
+
 	"github.com/cenkalti/backoff/v3"
 )
 
@@ -23,7 +25,11 @@ type logUploader struct {
 	wg     sync.WaitGroup
 }
 
-func NewlogUploader(ctx context.Context, endpoint string) *logUploader {
+func NewLogUploader(ctx context.Context, endpoint string) (*logUploader, error) {
+	if _, err := url.Parse(endpoint); err != nil {
+		return nil, err
+	}
+
 	uctx, cancel := context.WithCancel(ctx)
 
 	l := &logUploader{
@@ -32,7 +38,6 @@ func NewlogUploader(ctx context.Context, endpoint string) *logUploader {
 	}
 
 	// start periodic uploading of log messages.
-
 	l.wg.Add(1)
 	go func() {
 		defer l.wg.Done()
@@ -51,7 +56,7 @@ func NewlogUploader(ctx context.Context, endpoint string) *logUploader {
 		}
 	}()
 
-	return l
+	return l, nil
 }
 
 //Write adds p to the upload buffer and is threadsafe.

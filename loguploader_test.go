@@ -18,12 +18,12 @@ func TestNewClosePanic(t *testing.T) {
 		}
 	}()
 
-	l := NewlogUploader(context.Background(), "")
+	l := NewLogUploader(context.Background(), "")
 	l.Close()
 }
 
-func TestNewlogUploader(t *testing.T) {
-	tt := NewlogUploader(context.Background(), "test")
+func TestNewLogUploader(t *testing.T) {
+	tt := NewLogUploader(context.Background(), "test")
 
 	if tt.endpoint != "test" {
 		t.Errorf("endpoint not set: expected 'test', got '%s'", tt.endpoint)
@@ -58,7 +58,7 @@ func TestSend(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	tt := NewlogUploader(context.Background(), ts.URL)
+	tt := NewLogUploader(context.Background(), ts.URL)
 
 	body := "uploaded"
 

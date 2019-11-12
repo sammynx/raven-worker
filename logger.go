@@ -20,37 +20,54 @@ var DefaultLogger = NewDefaultLogger(os.Getenv("RAVEN_LOG"), os.Getenv("WORKER_I
 type defaultLogger struct {
 	rz.Logger
 
-	upload *logUploader // need this for closing the logger.
+	LogCloser // need this for closing the logger.
+}
+
+type LogCloser interface {
+	Close() error
+}
+
+type NullLogCloser struct {
+}
+
+func (NullLogCloser) Close() error {
+	return nil
 }
 
 //NewDefaultLogger creates a JSON logger which outputs to an http endpoint.
-// provide an empty string as endpoint to log to stdout.
+//provide an empty string as endpoint to log to stdout.
 func NewDefaultLogger(endpoint, id string) *defaultLogger {
-
+	// TODO: add flow_id, worker_id and block_id
 	logger := rz.New(
 		rz.Fields(rz.Timestamp(true), rz.String("worker-id", id)),
 	)
 
-	if endpoint == "" {
-		logger = logger.With(rz.Writer(rz.SyncWriter(os.Stdout)))
+	var logCloser LogCloser = &NullLogCloser{}
 
-		return &defaultLogger{
-			Logger: logger,
-		}
+	lvl := rz.InfoLevel
+
+	if s := os.Getenv("LOG_LEVEL"); s == "" {
+	} else if parsedLevel, err := rz.ParseLevel(s); err != nil {
+		logger.Fatal(fmt.Sprintf("Could not parse log level: %s", s))
+	} else {
+		lvl = parsedLevel
 	}
 
-	l := NewlogUploader(context.Background(), endpoint)
+	// always write to stdout
+	logger = logger.With(rz.Level(lvl), rz.Writer(rz.SyncWriter(os.Stdout)), rz.Formatter(rz.FormatterConsole()))
 
-	logger = logger.With(rz.Writer(l))
+	if endpoint == "" {
+	} else if l, err := NewLogUploader(context.Background(), endpoint); err != nil {
+		logger.Fatal(fmt.Sprintf("Could not configure log uploader: %s", err))
+	} else {
+		logCloser = l
+		logger = logger.With(rz.Level(lvl), rz.Writer(l))
+	}
 
 	return &defaultLogger{
-		Logger: logger,
-		upload: l,
+		Logger:    logger,
+		LogCloser: logCloser,
 	}
-}
-
-func (l *defaultLogger) Close() error {
-	return l.upload.Close()
 }
 
 // TODO: improving logging
