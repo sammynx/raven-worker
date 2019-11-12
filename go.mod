@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/cenkalti/backoff v2.2.1+incompatible
+	github.com/cenkalti/backoff/v3 v3.0.0
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/google/go-cmp v0.3.1
 	github.com/philhofer/fwd v1.0.0 // indirect

@@ -3,7 +3,7 @@ package ravenworker
 import (
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 	context "golang.org/x/net/context"

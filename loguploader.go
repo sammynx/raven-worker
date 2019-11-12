@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 )
 
 // upload log messages to an http endpoint, implements 'io.Writer' interface.
