@@ -49,7 +49,7 @@ func (c *DefaultWorker) Consume(ctx context.Context) (Reference, error) {
 }
 
 func IsNotFoundErr(err error) bool {
-	return err.Error() == "job.capnp:Workflow.getJob: rpc exception: item not found"
+	return err.Error() == "job.capnp:Connection.getJob: rpc exception: item not found"
 }
 
 // waitForWork will wait for work. If no work is available it will retry
