@@ -62,12 +62,10 @@ func (c *DefaultWorker) waitForWork(ctx context.Context) (Reference, error) {
 	// if no messages have been seen for a while. Formation
 	// should restart the worker if backlog is growing.
 	//var cb backoff.BackOff
-	//cb = backoff.NewConstantBackOff(time.Millisecond * 200)
-
-	cb := c.newBackOff()
+	cb := backoff.NewExponentialBackOff()
 
 	for {
-		res, err := c.w.GetJob(context.Background(), func(params workflow.Connection_getJob_Params) error {
+		res, err := c.w.GetJob(ctx, func(params workflow.Connection_getJob_Params) error {
 			return nil
 		}).Struct()
 

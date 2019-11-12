@@ -79,7 +79,7 @@ func New(opts ...OptionFunc) (Worker, error) {
 		newBackOff: func() backoff.BackOff {
 			return backoff.WithMaxRetries(backoff.NewExponentialBackOff(), 5)
 		},
-		consumeTimeout: 10 * time.Second,
+		consumeTimeout: 60 * time.Second,
 	}
 
 	for _, optFn := range opts {

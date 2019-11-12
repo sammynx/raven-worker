@@ -86,20 +86,16 @@ func WithBackOff(fn BackOffFunc) OptionFunc {
 
 //WithConsumeTimeout time frame to wait for a new message.
 // not setting this equals wait forever.
-func WithConsumeTimeout(s string) OptionFunc {
-	return func(c *Config) error {
-		if s == "" {
-			// timeout not set, use its default.
-			return nil
-		}
+func WithConsumeTimeout(s string) (OptionFunc, error) {
+	timeout, err := time.ParseDuration(s)
+	if err != nil {
+		return nil, err
+	}
 
-		timeout, err := time.ParseDuration(s)
-		if err != nil {
-			return err
-		}
+	return func(c *Config) error {
 		c.consumeTimeout = timeout
 		return nil
-	}
+	}, nil
 }
 
 //WithMaxIntake ingest messages until maxIntake is reached.
@@ -147,6 +143,13 @@ func DefaultEnvironment() OptionFunc {
 	}
 
 	if optionFn, err := WithWorkerID(os.Getenv("WORKER_ID")); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
+
+	if s := os.Getenv("CONSUME_TIMEOUT"); s == "" {
+	} else if optionFn, err := WithConsumeTimeout(s); err != nil {
 		return errorFunc(err)
 	} else {
 		opts = append(opts, optionFn)
