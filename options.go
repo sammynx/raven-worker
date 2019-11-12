@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 
 	"github.com/gofrs/uuid"
 )

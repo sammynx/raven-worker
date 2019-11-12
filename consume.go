@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 )
@@ -67,8 +67,8 @@ func (c *DefaultWorker) waitForWork(ctx context.Context) (Reference, error) {
 	cb := c.newBackOff()
 
 	for {
-		res, err := c.w.GetJob(ctx, func(params workflow.Workflow_getJob_Params) error {
-			return params.SetWorkerID(c.WorkerID.Bytes())
+		res, err := c.w.GetJob(context.Background(), func(params workflow.Connection_getJob_Params) error {
+			return nil
 		}).Struct()
 
 		if err == nil {
