@@ -5,7 +5,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	context "golang.org/x/net/context"
 )
 
@@ -28,7 +28,7 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not get message: %s", err)
+			c.log.Errorf("Could not get message: %s", err)
 			return Message{}, err
 		} else if t != nil {
 			t.Reset(next)
@@ -37,7 +37,7 @@ func (c *DefaultWorker) Get(ref Reference) (Message, error) {
 			defer t.Stop()
 		}
 
-		c.l.Debugf("Got error while get message for: %s. Will retry in %v.", err.Error(), next)
+		c.log.Debugf("Got error while get message for: %s. Will retry in %v.", err.Error(), next)
 
 		<-t.C
 	}

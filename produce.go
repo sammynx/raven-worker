@@ -39,7 +39,7 @@ func (c *DefaultWorker) Produce(message Message) error {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not produce message: %s", err)
+			c.log.Errorf("Could not produce message: %s", err)
 			return err
 		} else if t != nil {
 			t.Reset(next)
@@ -48,7 +48,7 @@ func (c *DefaultWorker) Produce(message Message) error {
 			defer t.Stop()
 		}
 
-		c.l.Debugf("Got error while producing message: %s. Will retry in %v.", err.Error(), next)
+		c.log.Debugf("Got error while producing message: %s. Will retry in %v.", err.Error(), next)
 
 		<-t.C
 	}

@@ -1,12 +1,12 @@
 package ravenworker
 
 import (
+	"context"
 	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
-	uuid "github.com/satori/go.uuid"
-	context "golang.org/x/net/context"
+	"github.com/gofrs/uuid"
 )
 
 var EmptyMessage = Message{}
@@ -34,48 +34,37 @@ var EmptyMessage = Message{}
 //     }
 //
 // Use this function for the 'transform' and 'load' worker types.
-func (c *DefaultWorker) Consume() (Reference, error) {
-	var t *time.Timer
+// blocks until it receives a message or 'consumeTimeout' expires.
+func (c *DefaultWorker) Consume(ctx context.Context) (Reference, error) {
 
-	cb := c.newBackOff()
-
-	for {
-		reference, err := c.waitForWork()
-		if err == nil {
-			return reference, nil
-		}
-
-		next := cb.NextBackOff()
-		if next == backoff.Stop {
-			c.l.Errorf("Could not consume message: %s", err)
-			return Reference{}, err
-		} else if t != nil {
-			t.Reset(next)
-		} else {
-			t = time.NewTimer(next)
-			defer t.Stop()
-		}
-
-		c.l.Debugf("Got error while consuming message for: %s. Will retry in %v.", err.Error(), next)
-
-		<-t.C
+	// there is no timeout, we wait forever to get a reference.
+	if c.consumeTimeout == 0 {
+		return c.waitForWork(ctx)
 	}
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, c.consumeTimeout)
+	defer cancel()
+
+	return c.waitForWork(ctxTimeout)
 }
 
 func IsNotFoundErr(err error) bool {
 	return err.Error() == "job.capnp:Workflow.getJob: rpc exception: item not found"
 }
 
-// waitForWork will wait for work. If no work is available it will retry.
-func (c *DefaultWorker) waitForWork() (Reference, error) {
+// waitForWork will wait for work. If no work is available it will retry
+// until context is canceled.
+func (c *DefaultWorker) waitForWork(ctx context.Context) (Reference, error) {
 	var t *time.Timer
 
 	// new constant backoff with infinite retries, this could
 	// be changed in the future to automatically stop workers
 	// if no messages have been seen for a while. Formation
 	// should restart the worker if backlog is growing.
-	var cb backoff.BackOff
-	cb = backoff.NewConstantBackOff(time.Millisecond * 200)
+	//var cb backoff.BackOff
+	//cb = backoff.NewConstantBackOff(time.Millisecond * 200)
+
+	cb := c.newBackOff()
 
 	for {
 		res, err := c.w.GetJob(context.Background(), func(params workflow.Connection_getJob_Params) error {
@@ -109,6 +98,10 @@ func (c *DefaultWorker) waitForWork() (Reference, error) {
 			defer t.Stop()
 		}
 
-		<-t.C
+		select {
+		case <-ctx.Done():
+			return Reference{}, ctx.Err()
+		case <-t.C:
+		}
 	}
 }

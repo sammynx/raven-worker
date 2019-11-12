@@ -1,21 +1,22 @@
 package ravenworker
 
 import (
+	"context"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
-	"github.com/labstack/gommon/log"
-	context "golang.org/x/net/context"
 	"zombiezen.com/go/capnproto2/rpc"
 )
 
 type Worker interface {
-	Consume() (Reference, error)
+	Consume(ctx context.Context) (Reference, error)
 	Get(Reference) (Message, error)
 	Ack(Reference, ...AckOptionFunc) error
 	Produce(Message) error
+	Close() error
 }
 
 type DefaultWorker struct {
@@ -28,13 +29,20 @@ type DefaultWorker struct {
 	connectionCounter int
 }
 
+func (w *DefaultWorker) Close() error {
+	for _, c := range w.closers {
+		c.Close()
+	}
+	return nil
+}
+
 func (w *DefaultWorker) connect() error {
 	w.m.Lock()
 	defer w.m.Unlock()
 
 	u := w.urls[w.connectionCounter%len(w.urls)]
 
-	log.Infof("Connecting to rpc server: %s", u)
+	w.log.Infof("Connecting to rpc server: %s", u)
 
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
@@ -68,11 +76,10 @@ func (w *DefaultWorker) connect() error {
 // New returns a new configured Raven Worker client
 func New(opts ...OptionFunc) (Worker, error) {
 	c := Config{
-		l: DefaultLogger,
-
 		newBackOff: func() backoff.BackOff {
 			return backoff.NewExponentialBackOff()
 		},
+		consumeTimeout: 10 * time.Second,
 	}
 
 	for _, optFn := range opts {

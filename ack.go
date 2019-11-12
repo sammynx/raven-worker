@@ -5,7 +5,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/dutchsec/raven-worker/workflow"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	context "golang.org/x/net/context"
 )
 
@@ -70,7 +70,7 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 
 		next := cb.NextBackOff()
 		if next == backoff.Stop {
-			c.l.Errorf("Could not ack message: %s", err)
+			c.log.Errorf("Could not ack message: %s", err)
 			return err
 		} else if t != nil {
 			t.Reset(next)
@@ -79,7 +79,7 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 			defer t.Stop()
 		}
 
-		c.l.Debugf("Got error while ack message: %s. Will retry in %v.", err.Error(), next)
+		c.log.Debugf("Got error while ack message: %s. Will retry in %v.", err.Error(), next)
 
 		<-t.C
 	}

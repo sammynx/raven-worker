@@ -2,9 +2,11 @@ package ravenworker
 
 import (
 	"errors"
+	"io"
 	"net/url"
+	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 type Config struct {
@@ -14,9 +16,15 @@ type Config struct {
 
 	FlowID uuid.UUID
 
-	l Logger
+	log Logger
 
 	newBackOff BackOffFunc
+
+	consumeTimeout time.Duration // time frame to wait for a new message. Zero is no timeout.
+
+	maxIntake int // do not ingest more messages than this treshold.
+
+	closers []io.Closer
 }
 
 func (c Config) validate() error {
@@ -24,11 +32,11 @@ func (c Config) validate() error {
 		return errors.New("env RAVEN_URL needs to be set")
 	}
 
-	if uuid.Equal(c.FlowID, uuid.Nil) {
+	if c.FlowID == uuid.Nil {
 		return errors.New("env FLOW_ID needs to be set")
 	}
 
-	if uuid.Equal(c.WorkerID, uuid.Nil) {
+	if c.WorkerID == uuid.Nil {
 		return errors.New("env WORKER_ID needs to be set")
 	}
 
