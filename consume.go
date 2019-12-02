@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 )
@@ -49,7 +49,7 @@ func (c *DefaultWorker) Consume(ctx context.Context) (Reference, error) {
 }
 
 func IsNotFoundErr(err error) bool {
-	return err.Error() == "job.capnp:Workflow.getJob: rpc exception: item not found"
+	return err.Error() == "job.capnp:Connection.getJob: rpc exception: item not found"
 }
 
 // waitForWork will wait for work. If no work is available it will retry
@@ -62,13 +62,11 @@ func (c *DefaultWorker) waitForWork(ctx context.Context) (Reference, error) {
 	// if no messages have been seen for a while. Formation
 	// should restart the worker if backlog is growing.
 	//var cb backoff.BackOff
-	//cb = backoff.NewConstantBackOff(time.Millisecond * 200)
-
-	cb := c.newBackOff()
+	cb := backoff.NewExponentialBackOff()
 
 	for {
-		res, err := c.w.GetJob(ctx, func(params workflow.Workflow_getJob_Params) error {
-			return params.SetWorkerID(c.WorkerID.Bytes())
+		res, err := c.w.GetJob(ctx, func(params workflow.Connection_getJob_Params) error {
+			return nil
 		}).Struct()
 
 		if err == nil {

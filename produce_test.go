@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"zombiezen.com/go/capnproto2/rpc"
 )
@@ -16,15 +16,24 @@ type Worker interface {
 	Get(Reference) (Message, error)
 	Ack(Reference, ...AckOptionFunc) error
 	Produce(Message) error
+	Close() error
 }
 
 type DefaultWorker struct {
 	Config
 
-	w *workflow.Workflow
+	w workflow.Connection
+
 	m sync.Mutex
 
 	connectionCounter int
+}
+
+func (w *DefaultWorker) Close() error {
+	for _, c := range w.closers {
+		c.Close()
+	}
+	return nil
 }
 
 func (w *DefaultWorker) connect() error {
@@ -33,7 +42,7 @@ func (w *DefaultWorker) connect() error {
 
 	u := w.urls[w.connectionCounter%len(w.urls)]
 
-	w.log.Infof("Connecting to rpc server: %s", u)
+	w.log.Infof("Connecting to rpc server: %v", u.String())
 
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
@@ -44,7 +53,21 @@ func (w *DefaultWorker) connect() error {
 
 	client := rpcconn.Bootstrap(context.Background())
 
-	w.w = &workflow.Workflow{Client: client}
+	//TODO: workflowToServe?
+	wf := &workflow.Workflow{Client: client}
+	promise := wf.Connect(context.Background(), func(params workflow.Workflow_connect_Params) error {
+		if err := params.SetFlowID(w.FlowID.Bytes()); err != nil {
+			return err
+		}
+
+		if err := params.SetWorkerID(w.WorkerID.Bytes()); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	w.w = promise.Connection()
 
 	w.connectionCounter++
 	return err
@@ -54,9 +77,9 @@ func (w *DefaultWorker) connect() error {
 func New(opts ...OptionFunc) (Worker, error) {
 	c := Config{
 		newBackOff: func() backoff.BackOff {
-			return backoff.NewExponentialBackOff()
+			return backoff.WithMaxRetries(backoff.NewExponentialBackOff(), 5)
 		},
-		consumeTimeout: 10 * time.Second,
+		consumeTimeout: 60 * time.Second,
 	}
 
 	for _, optFn := range opts {

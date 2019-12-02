@@ -3,7 +3,7 @@ package ravenworker
 import (
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 	context "golang.org/x/net/context"
@@ -88,7 +88,7 @@ func (c *DefaultWorker) Ack(ref Reference, options ...AckOptionFunc) error {
 func (c *DefaultWorker) ack(ref Reference, ar ackRequest) error {
 	ackID, _ := uuid.FromString(ref.AckID)
 
-	_, err := c.w.AckJob(context.Background(), func(params workflow.Workflow_ackJob_Params) error {
+	_, err := c.w.AckJob(context.Background(), func(params workflow.Connection_ackJob_Params) error {
 		e, err := params.NewEvent()
 		if err != nil {
 			return err

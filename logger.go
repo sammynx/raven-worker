@@ -2,10 +2,10 @@ package ravenworker
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"gitlab.com/z0mbie42/rz-go/v2"
+	context "golang.org/x/net/context"
 )
 
 type Logger interface {
@@ -15,35 +15,59 @@ type Logger interface {
 	Fatalf(msg string, args ...interface{})
 }
 
-var DefaultLogger Logger = NewDefaultLogger(os.Getenv("RAVEN_LOG"))
+var DefaultLogger = NewDefaultLogger(os.Getenv("RAVEN_LOG"), os.Getenv("WORKER_ID"))
 
 type defaultLogger struct {
 	rz.Logger
+
+	LogCloser // need this for closing the logger.
 }
 
-const loggerOK = "{\"logger ok.\"}"
+type LogCloser interface {
+	Close() error
+}
 
-//NewDefaultLogger creates a JSON logger which outputs to a Raven Fluentd endpoint.
-// If endpoint is not available it defaults to Stdout.
-func NewDefaultLogger(endpoint string) *defaultLogger {
-	var w io.Writer = os.Stdout
+type NullLogCloser struct {
+}
 
-	// check connection.
-	l := &LogUploader{endpoint: endpoint}
-	_, err := l.Write([]byte(loggerOK))
-	if err == nil {
-		w = l
-	}
+func (NullLogCloser) Close() error {
+	return nil
+}
 
-	// make this threadfsafe with a syncwriter.
-	writer := rz.SyncWriter(w)
-
+//NewDefaultLogger creates a JSON logger which outputs to an http endpoint.
+//provide an empty string as endpoint to log to stdout.
+func NewDefaultLogger(endpoint, id string) *defaultLogger {
+	// TODO: add flow_id, worker_id and block_id
 	logger := rz.New(
-		rz.Fields(rz.Timestamp(true)),
-		rz.Writer(writer),
+		rz.Fields(rz.Timestamp(true), rz.String("worker-id", id)),
 	)
 
-	return &defaultLogger{Logger: logger}
+	var logCloser LogCloser = &NullLogCloser{}
+
+	lvl := rz.InfoLevel
+
+	if s := os.Getenv("LOG_LEVEL"); s == "" {
+	} else if parsedLevel, err := rz.ParseLevel(s); err != nil {
+		logger.Fatal(fmt.Sprintf("Could not parse log level: %s", s))
+	} else {
+		lvl = parsedLevel
+	}
+
+	// always write to stdout
+	logger = logger.With(rz.Level(lvl), rz.Writer(rz.SyncWriter(os.Stdout)), rz.Formatter(rz.FormatterConsole()))
+
+	if endpoint == "" {
+	} else if l, err := NewLogUploader(context.Background(), endpoint); err != nil {
+		logger.Fatal(fmt.Sprintf("Could not configure log uploader: %s", err))
+	} else {
+		logCloser = l
+		logger = logger.With(rz.Level(lvl), rz.Writer(l))
+	}
+
+	return &defaultLogger{
+		Logger:    logger,
+		LogCloser: logCloser,
+	}
 }
 
 // TODO: improving logging

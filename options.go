@@ -1,14 +1,16 @@
 package ravenworker
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 
 	"github.com/gofrs/uuid"
 )
@@ -58,8 +60,17 @@ func WithWorkerID(s string) (OptionFunc, error) {
 }
 
 func WithLogger(l Logger) (OptionFunc, error) {
+	if l == nil {
+		return nil, errors.New("WithLogger called with <nil> logger")
+	}
+
 	return func(c *Config) error {
 		c.log = l
+
+		// use Close if available.
+		if deflog, ok := l.(io.Closer); ok {
+			c.closers = append(c.closers, deflog)
+		}
 		return nil
 	}, nil
 }
@@ -75,20 +86,16 @@ func WithBackOff(fn BackOffFunc) OptionFunc {
 
 //WithConsumeTimeout time frame to wait for a new message.
 // not setting this equals wait forever.
-func WithConsumeTimeout(s string) OptionFunc {
-	return func(c *Config) error {
-		if s == "" {
-			// timeout not set, use its default.
-			return nil
-		}
+func WithConsumeTimeout(s string) (OptionFunc, error) {
+	timeout, err := time.ParseDuration(s)
+	if err != nil {
+		return nil, err
+	}
 
-		timeout, err := time.ParseDuration(s)
-		if err != nil {
-			return err
-		}
+	return func(c *Config) error {
 		c.consumeTimeout = timeout
 		return nil
-	}
+	}, nil
 }
 
 //WithMaxIntake ingest messages until maxIntake is reached.
@@ -99,6 +106,14 @@ func WithMaxIntake(num string) OptionFunc {
 			return err
 		}
 		c.maxIntake = n
+		return nil
+	}
+}
+
+//WithCloser adds an 'io.Closer' to the list.
+func WithCloser(closer io.Closer) OptionFunc {
+	return func(c *Config) error {
+		c.closers = append(c.closers, closer)
 		return nil
 	}
 }
@@ -133,13 +148,18 @@ func DefaultEnvironment() OptionFunc {
 		opts = append(opts, optionFn)
 	}
 
-	if optionFn, err := WithLogger(DefaultLogger); err != nil {
+	if s := os.Getenv("CONSUME_TIMEOUT"); s == "" {
+	} else if optionFn, err := WithConsumeTimeout(s); err != nil {
 		return errorFunc(err)
 	} else {
 		opts = append(opts, optionFn)
 	}
 
-	opts = append(opts, WithConsumeTimeout(os.Getenv("CONSUME_TIMEOUT")))
+	if optionFn, err := WithLogger(DefaultLogger); err != nil {
+		return errorFunc(err)
+	} else {
+		opts = append(opts, optionFn)
+	}
 
 	return func(c *Config) error {
 		for _, optionFn := range opts {

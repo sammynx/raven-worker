@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/dutchsec/raven-worker/workflow"
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
@@ -31,11 +31,14 @@ func TestConsume(t *testing.T) {
 
 	defer srvr.Close()
 
+	logger := NewDefaultLogger("", "")
+
 	w, err := New(
 		MustWithRavenURL(fmt.Sprintf("capnproto://%s", srvr.Addr().String())),
 		MustWithFlowID(flowID.String()),
 		MustWithWorkerID(workerID.String()),
-		MustWithLogger(DefaultLogger),
+		MustWithLogger(logger),
+		WithCloser(logger),
 		WithBackOff(StopBackOff),
 	)
 	if err != nil {
